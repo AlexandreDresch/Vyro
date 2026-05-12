@@ -1,5 +1,7 @@
 export type Status = "paid" | "pending" | "cancelled";
 export type Tab = "dashboard" | "sales" | "products" | "clients";
+export type Language = "pt" | "en" | "es-AR";
+export type Currency = "BRL" | "USD" | "ARS";
 
 export interface Sale {
   id: string;

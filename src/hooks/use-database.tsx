@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { UserPreferences } from "../components/screens/setup-screen";
 import { Client, DB, Product, Sale } from "../types";
 import { loadDB, persistDB } from "../utils/storage";
 
@@ -11,12 +12,45 @@ interface DBContextType {
   deleteSale: (id: string) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
   deleteClient: (id: string) => Promise<void>;
+  formatCurrency: (amount: number) => string;
+}
+
+interface DBProviderProps {
+  children: React.ReactNode;
+  preferences: UserPreferences | null;
 }
 
 const DBContext = createContext<DBContextType | undefined>(undefined);
 
-export function DBProvider({ children }: { children: React.ReactNode }) {
+export function DBProvider({ children, preferences }: DBProviderProps) {
   const [db, setDB] = useState<DB | null>(null);
+
+  const formatCurrency = (amount: number): string => {
+    if (!preferences) return `R$ ${amount.toFixed(2)}`;
+
+    const currency = preferences.currency;
+    const language = preferences.language;
+
+    switch (currency) {
+      case "BRL":
+        return amount.toLocaleString("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        });
+      case "USD":
+        return amount.toLocaleString("en-US", {
+          style: "currency",
+          currency: "USD",
+        });
+      case "ARS":
+        return amount.toLocaleString("es-AR", {
+          style: "currency",
+          currency: "ARS",
+        });
+      default:
+        return `R$ ${amount.toFixed(2)}`;
+    }
+  };
 
   useEffect(() => {
     loadDB().then(setDB);
@@ -76,6 +110,7 @@ export function DBProvider({ children }: { children: React.ReactNode }) {
         deleteSale,
         deleteProduct,
         deleteClient,
+        formatCurrency,
       }}
     >
       {children}

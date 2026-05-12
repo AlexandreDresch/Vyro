@@ -1,14 +1,42 @@
-import { Status } from "@/src/types";
+import { Currency, Status } from "@/src/types";
 
 export const uid = () =>
   Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 
-export const fmt = (n: number) =>
-  "R$ " +
-  n.toLocaleString("pt-BR", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  });
+export const formatCurrency = (
+  amount: number,
+  currency: Currency = "BRL",
+): string => {
+  switch (currency) {
+    case "BRL":
+      return amount.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    case "USD":
+      return amount.toLocaleString("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    case "ARS":
+      return amount.toLocaleString("es-AR", {
+        style: "currency",
+        currency: "ARS",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    default:
+      return `R$ ${amount.toFixed(2)}`;
+  }
+};
+
+export const fmt = (amount: number, currency?: Currency): string => {
+  return formatCurrency(amount, currency);
+};
 
 export const initials = (name: string) =>
   name
