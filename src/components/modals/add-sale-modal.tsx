@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useDB } from "../../hooks/use-database";
 import { Status } from "../../types";
@@ -78,50 +78,62 @@ export function AddSaleModal({ onClose, onSave }: AddSaleModalProps) {
       <ScrollView showsVerticalScrollIndicator={false}>
         <Field label="Product" required error={errors.productId}>
           <View style={styles.pickerContainer}>
-            {db.products.map((p) => (
-              <TouchableOpacity
-                key={p.id}
-                style={[
-                  styles.pickerOption,
-                  productId === p.id && styles.pickerOptionSelected,
-                ]}
-                onPress={() => setProductId(p.id)}
-              >
-                <Text
+            {db.products.length === 0 ? (
+              <Text style={{ color: "#999", fontStyle: "italic" }}>
+                No products available. Please add a product first.
+              </Text>
+            ) : (
+              db.products.map((p) => (
+                <TouchableOpacity
+                  key={p.id}
                   style={[
-                    styles.pickerOptionText,
-                    productId === p.id && styles.pickerOptionTextSelected,
+                    styles.pickerOption,
+                    productId === p.id && styles.pickerOptionSelected,
                   ]}
+                  onPress={() => setProductId(p.id)}
                 >
-                  {p.name}
-                </Text>
-                <Text style={styles.pickerOptionPrice}>{p.price}</Text>
-              </TouchableOpacity>
-            ))}
+                  <Text
+                    style={[
+                      styles.pickerOptionText,
+                      productId === p.id && styles.pickerOptionTextSelected,
+                    ]}
+                  >
+                    {p.name}
+                  </Text>
+                  <Text style={styles.pickerOptionPrice}>{p.price}</Text>
+                </TouchableOpacity>
+              ))
+            )}
           </View>
         </Field>
 
         <Field label="Client" required error={errors.clientId}>
           <View style={styles.pickerContainer}>
-            {db.clients.map((c) => (
-              <TouchableOpacity
-                key={c.id}
-                style={[
-                  styles.pickerOption,
-                  clientId === c.id && styles.pickerOptionSelected,
-                ]}
-                onPress={() => setClientId(c.id)}
-              >
-                <Text
+            {db.clients.length === 0 ? (
+              <Text style={{ color: "#999", fontStyle: "italic" }}>
+                No clients available. Please add a client first.
+              </Text>
+            ) : (
+              db.clients.map((c) => (
+                <TouchableOpacity
+                  key={c.id}
                   style={[
-                    styles.pickerOptionText,
-                    clientId === c.id && styles.pickerOptionTextSelected,
+                    styles.pickerOption,
+                    clientId === c.id && styles.pickerOptionSelected,
                   ]}
+                  onPress={() => setClientId(c.id)}
                 >
-                  {c.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
+                  <Text
+                    style={[
+                      styles.pickerOptionText,
+                      clientId === c.id && styles.pickerOptionTextSelected,
+                    ]}
+                  >
+                    {c.name}
+                  </Text>
+                </TouchableOpacity>
+              ))
+            )}
           </View>
         </Field>
 

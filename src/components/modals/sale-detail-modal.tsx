@@ -1,10 +1,12 @@
-import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Pencil } from "lucide-react-native";
+import React, { useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useDB } from "../../hooks/use-database";
 import { Sale, Status } from "../../types";
 import { fmt, statusColor } from "../../utils/helpers";
 import { ButtonRow } from "../common/button-row";
 import { Modal } from "../common/modal";
+import { EditSaleModal } from "./edit-sale-modal";
 
 interface SaleDetailModalProps {
   sale: Sale;
@@ -17,7 +19,8 @@ export function SaleDetailModal({
   onClose,
   onDelete,
 }: SaleDetailModalProps) {
-  const { deleteSale } = useDB();
+  const { deleteSale, updateSale } = useDB();
+  const [isEditing, setIsEditing] = useState(false);
 
   const handleDelete = () => {
     if (onDelete) {
@@ -40,43 +43,71 @@ export function SaleDetailModal({
 
   return (
     <Modal title="Sale Details" onClose={onClose}>
-      {detailRows.map((row, index) => (
-        <View key={index} style={styles.detailRow}>
-          <Text style={styles.detailLabel}>{row.label}</Text>
-          {row.isStatus ? (
-            <View
-              style={[
-                styles.statusBadge,
-                { backgroundColor: statusColor[sale.status as Status].bg },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.statusText,
-                  { color: statusColor[sale.status as Status].text },
-                ]}
-              >
-                {row.value}
-              </Text>
+      {!isEditing ? (
+        <>
+          {detailRows.map((row, index) => (
+            <View key={index} style={styles.detailRow}>
+              <Text style={styles.detailLabel}>{row.label}</Text>
+              {row.isStatus ? (
+                <View
+                  style={[
+                    styles.statusBadge,
+                    { backgroundColor: statusColor[sale.status as Status].bg },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.statusText,
+                      { color: statusColor[sale.status as Status].text },
+                    ]}
+                  >
+                    {row.value}
+                  </Text>
+                </View>
+              ) : (
+                <Text
+                  style={[
+                    styles.detailValue,
+                    row.highlight && styles.highlightValue,
+                  ]}
+                >
+                  {row.value}
+                </Text>
+              )}
             </View>
-          ) : (
-            <Text
-              style={[
-                styles.detailValue,
-                row.highlight && styles.highlightValue,
-              ]}
-            >
-              {row.value}
+          ))}
+          <ButtonRow
+            onCancel={handleDelete}
+            onConfirm={onClose}
+            confirmLabel="Close"
+            cancelLabel="Delete"
+          />
+
+          <TouchableOpacity
+            onPress={() => setIsEditing(true)}
+            style={styles.editButton}
+          >
+            <Text style={styles.editButtonText}>
+              Edit Sale{"  "}
+              <Pencil
+                size={14}
+                color={"#e8b84b"}
+                style={styles.editButtonIcon}
+              />
             </Text>
-          )}
-        </View>
-      ))}
-      <ButtonRow
-        onCancel={handleDelete}
-        onConfirm={onClose}
-        confirmLabel="Close"
-        cancelLabel="Delete"
-      />
+          </TouchableOpacity>
+        </>
+      ) : (
+        <EditSaleModal
+          sale={sale}
+          onClose={() => setIsEditing(false)}
+          onSave={(updated) => {
+            updateSale(updated);
+            setIsEditing(false);
+            onClose();
+          }}
+        />
+      )}
     </Modal>
   );
 }
@@ -113,5 +144,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
     textTransform: "capitalize",
+  },
+  editButton: {
+    marginTop: 16,
+    paddingVertical: 12,
+    alignItems: "center",
+    backgroundColor: "#1a1a1a",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.05)",
+  },
+  editButtonText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#e8b84b",
+  },
+  editButtonIcon: {
+    marginRight: 8,
   },
 });

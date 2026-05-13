@@ -1,11 +1,13 @@
-import React, { useMemo } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Pencil } from "lucide-react-native";
+import React, { useMemo, useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useDB } from "../../hooks/use-database";
 import { Product } from "../../types";
 import { fmt } from "../../utils/helpers";
 import { ButtonRow } from "../common/button-row";
 import { Modal } from "../common/modal";
 import { StockBar } from "../common/stock-bar";
+import { EditProductModal } from "./edit-product-modal";
 
 interface ProductDetailModalProps {
   product: Product;
@@ -18,7 +20,7 @@ export function ProductDetailModal({
   onClose,
   onDelete,
 }: ProductDetailModalProps) {
-  const { db, deleteProduct } = useDB();
+  const { db, deleteProduct, updateProduct } = useDB();
 
   const stats = useMemo(() => {
     const paid =
@@ -30,6 +32,7 @@ export function ProductDetailModal({
       db?.sales.filter((s) => s.productId === product.id).length || 0;
     return { revenue, totalOrders, paidOrders: paid.length };
   }, [db, product.id]);
+  const [isEditing, setIsEditing] = useState(false);
 
   const handleDelete = () => {
     if (onDelete) {
@@ -55,57 +58,88 @@ export function ProductDetailModal({
 
   return (
     <Modal title={product.name} onClose={onClose}>
-      <View style={styles.headerSection}>
-        <View
-          style={[styles.colorIndicator, { backgroundColor: product.color }]}
+      {!isEditing ? (
+        <>
+          <View style={styles.headerSection}>
+            <View
+              style={[
+                styles.colorIndicator,
+                { backgroundColor: product.color },
+              ]}
+            />
+            <Text style={styles.category}>{product.category}</Text>
+          </View>
+
+          <View style={styles.statsGrid}>
+            <View style={styles.statCard}>
+              <Text style={styles.statLabel}>Price</Text>
+              <Text style={styles.statValue}>{fmt(product.price)}</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={styles.statLabel}>Stock</Text>
+              <Text style={[styles.statValue, { color: getStockColor() }]}>
+                {product.stock} units
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.stockSection}>
+            <Text style={styles.stockStatus}>{getStockLevel()}</Text>
+            <StockBar stock={product.stock} width={100} height={6} />
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.revenueSection}>
+            <Text style={styles.sectionTitle}>Sales Performance</Text>
+            <View style={styles.revenueStats}>
+              <View style={styles.revenueItem}>
+                <Text style={styles.revenueLabel}>Total Revenue</Text>
+                <Text style={styles.revenueValue}>{fmt(stats.revenue)}</Text>
+              </View>
+              <View style={styles.revenueItem}>
+                <Text style={styles.revenueLabel}>Paid Orders</Text>
+                <Text style={styles.revenueValue}>{stats.paidOrders}</Text>
+              </View>
+              <View style={styles.revenueItem}>
+                <Text style={styles.revenueLabel}>Total Orders</Text>
+                <Text style={styles.revenueValue}>{stats.totalOrders}</Text>
+              </View>
+            </View>
+          </View>
+
+          <ButtonRow
+            onCancel={handleDelete}
+            onConfirm={onClose}
+            confirmLabel="Close"
+            cancelLabel="Delete Product"
+          />
+
+          <TouchableOpacity
+            onPress={() => setIsEditing(true)}
+            style={styles.editButton}
+          >
+            <Text style={styles.editButtonText}>
+              Edit Product{"  "}
+              <Pencil
+                size={14}
+                color={"#e8b84b"}
+                style={styles.editButtonIcon}
+              />
+            </Text>
+          </TouchableOpacity>
+        </>
+      ) : (
+        <EditProductModal
+          product={product}
+          onClose={() => setIsEditing(false)}
+          onSave={(updated) => {
+            updateProduct(updated);
+            setIsEditing(false);
+            onClose();
+          }}
         />
-        <Text style={styles.category}>{product.category}</Text>
-      </View>
-
-      <View style={styles.statsGrid}>
-        <View style={styles.statCard}>
-          <Text style={styles.statLabel}>Price</Text>
-          <Text style={styles.statValue}>{fmt(product.price)}</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statLabel}>Stock</Text>
-          <Text style={[styles.statValue, { color: getStockColor() }]}>
-            {product.stock} units
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.stockSection}>
-        <Text style={styles.stockStatus}>{getStockLevel()}</Text>
-        <StockBar stock={product.stock} width={100} height={6} />
-      </View>
-
-      <View style={styles.divider} />
-
-      <View style={styles.revenueSection}>
-        <Text style={styles.sectionTitle}>Sales Performance</Text>
-        <View style={styles.revenueStats}>
-          <View style={styles.revenueItem}>
-            <Text style={styles.revenueLabel}>Total Revenue</Text>
-            <Text style={styles.revenueValue}>{fmt(stats.revenue)}</Text>
-          </View>
-          <View style={styles.revenueItem}>
-            <Text style={styles.revenueLabel}>Paid Orders</Text>
-            <Text style={styles.revenueValue}>{stats.paidOrders}</Text>
-          </View>
-          <View style={styles.revenueItem}>
-            <Text style={styles.revenueLabel}>Total Orders</Text>
-            <Text style={styles.revenueValue}>{stats.totalOrders}</Text>
-          </View>
-        </View>
-      </View>
-
-      <ButtonRow
-        onCancel={handleDelete}
-        onConfirm={onClose}
-        confirmLabel="Close"
-        cancelLabel="Delete Product"
-      />
+      )}
     </Modal>
   );
 }
@@ -190,5 +224,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#e8b84b",
+  },
+  editButton: {
+    marginTop: 16,
+    paddingVertical: 12,
+    alignItems: "center",
+    backgroundColor: "#1a1a1a",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.05)",
+  },
+  editButtonText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#e8b84b",
+  },
+  editButtonIcon: {
+    marginRight: 8,
   },
 });
