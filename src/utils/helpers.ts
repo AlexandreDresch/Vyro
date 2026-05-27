@@ -38,6 +38,22 @@ export const fmt = (amount: number, currency?: Currency): string => {
   return formatCurrency(amount, currency);
 };
 
+export const formatDate = (
+  dateString: string,
+  language: string = "en",
+): string => {
+  const date = new Date(dateString);
+  const options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  };
+
+  const locale =
+    language === "pt" ? "pt-BR" : language === "es-AR" ? "es-AR" : "en-US";
+  return date.toLocaleDateString(locale, options);
+};
+
 export const initials = (name: string) =>
   name
     .split(" ")

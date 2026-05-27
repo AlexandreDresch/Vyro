@@ -9,21 +9,20 @@
     "userInterfaceStyle": "dark",
     "backgroundColor": "#0a0a0a",
     "primaryColor": "#e8b84b",
-
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#0a0a0a"
     },
-
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.yourcompany.vyro",
       "infoPlist": {
-        "UISupportedInterfaceOrientations": ["UIInterfaceOrientationPortrait"]
+        "UISupportedInterfaceOrientations": [
+          "UIInterfaceOrientationPortrait"
+        ]
       }
     },
-
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
@@ -36,13 +35,11 @@
       ],
       "predictiveBackGestureEnabled": false
     },
-
     "web": {
       "bundler": "metro",
       "output": "single",
       "favicon": "./assets/images/favicon.png"
     },
-
     "plugins": [
       [
         "expo-document-picker",
@@ -50,9 +47,9 @@
           "iCloudContainerEnvironment": "Production"
         }
       ],
-      "expo-file-system"
+      "expo-file-system",
+      "@react-native-community/datetimepicker"
     ],
-
     "extra": {
       "eas": {
         "projectId": "your-project-id-here"

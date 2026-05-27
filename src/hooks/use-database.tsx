@@ -1,10 +1,12 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { Alert } from "react-native";
 import { UserPreferences } from "../components/screens/setup-screen";
 import { Client, DB, Product, Sale } from "../types";
 import { loadDB, persistDB } from "../utils/storage";
 
 interface DBContextType {
   db: DB | null;
+  preferences: UserPreferences | null;
   updateDB: (next: DB) => Promise<void>;
   addSale: (s: Sale) => Promise<void>;
   addProduct: (p: Product) => Promise<void>;
@@ -19,6 +21,7 @@ interface DBContextType {
     preserveHistory?: boolean,
   ) => Promise<void>;
   updateClient: (updatedClient: Client) => Promise<void>;
+  checkStockAvailability: (productId: string, quantity: number) => boolean;
 }
 
 interface DBProviderProps {
@@ -69,14 +72,39 @@ export function DBProvider({ children, preferences }: DBProviderProps) {
 
   const addSale = async (s: Sale) => {
     if (!db) return;
-    const next = { ...db, sales: [...db.sales, s] };
+
+    const product = db.products.find((p) => p.id === s.productId);
+    if (!product) return;
+
+    if (product.stock < s.quantity && s.status === "paid") {
+      Alert.alert(
+        "Insufficient Stock",
+        `Only ${product.stock} units available in stock.`,
+        [{ text: "OK" }],
+      );
+      return;
+    }
+
+    const updatedProducts = db.products.map((p) =>
+      p.id === s.productId ? { ...p, stock: p.stock - s.quantity } : p,
+    );
+
+    let updatedClients = [...db.clients];
     if (s.status === "paid") {
-      next.clients = next.clients.map((c) =>
+      updatedClients = updatedClients.map((c) =>
         c.id === s.clientId
           ? { ...c, totalPurchases: c.totalPurchases + s.total }
           : c,
       );
     }
+
+    const next = {
+      ...db,
+      sales: [...db.sales, s],
+      products: updatedProducts,
+      clients: updatedClients,
+    };
+
     await updateDB(next);
   };
 
@@ -112,7 +140,42 @@ export function DBProvider({ children, preferences }: DBProviderProps) {
 
   const deleteSale = async (id: string) => {
     if (!db) return;
-    await updateDB({ ...db, sales: db.sales.filter((s) => s.id !== id) });
+
+    const saleToDelete = db.sales.find((s) => s.id === id);
+    if (!saleToDelete) return;
+
+    let updatedProducts = [...db.products];
+    if (saleToDelete.status === "paid") {
+      updatedProducts = updatedProducts.map((p) =>
+        p.id === saleToDelete.productId
+          ? { ...p, stock: p.stock + saleToDelete.quantity }
+          : p,
+      );
+    }
+
+    let updatedClients = [...db.clients];
+    if (saleToDelete.status === "paid") {
+      updatedClients = updatedClients.map((c) =>
+        c.id === saleToDelete.clientId
+          ? {
+              ...c,
+              totalPurchases: Math.max(
+                0,
+                c.totalPurchases - saleToDelete.total,
+              ),
+            }
+          : c,
+      );
+    }
+
+    const updatedSales = db.sales.filter((s) => s.id !== id);
+
+    await updateDB({
+      ...db,
+      sales: updatedSales,
+      products: updatedProducts,
+      clients: updatedClients,
+    });
   };
 
   const updateSale = async (updatedSale: Sale) => {
@@ -121,12 +184,57 @@ export function DBProvider({ children, preferences }: DBProviderProps) {
     const oldSale = db.sales.find((s) => s.id === updatedSale.id);
     if (!oldSale) return;
 
+    const product = db.products.find((p) => p.id === updatedSale.productId);
+    if (!product) return;
+
+    let updatedProducts = [...db.products];
+    const stockDifference = updatedSale.quantity - oldSale.quantity;
+
+    if (updatedSale.status === "paid" && oldSale.status === "paid") {
+      if (stockDifference !== 0) {
+        const newStock = product.stock - stockDifference;
+        if (newStock < 0) {
+          Alert.alert(
+            "Insufficient Stock",
+            `Not enough stock available. Only ${product.stock} units in stock.`,
+            [{ text: "OK" }],
+          );
+          return;
+        }
+        updatedProducts = updatedProducts.map((p) =>
+          p.id === updatedSale.productId ? { ...p, stock: newStock } : p,
+        );
+      }
+    } else if (updatedSale.status === "paid" && oldSale.status !== "paid") {
+      const newStock = product.stock - updatedSale.quantity;
+      if (newStock < 0) {
+        Alert.alert(
+          "Insufficient Stock",
+          `Not enough stock available. Only ${product.stock} units in stock.`,
+          [{ text: "OK" }],
+        );
+        return;
+      }
+      updatedProducts = updatedProducts.map((p) =>
+        p.id === updatedSale.productId ? { ...p, stock: newStock } : p,
+      );
+    } else if (updatedSale.status !== "paid" && oldSale.status === "paid") {
+      updatedProducts = updatedProducts.map((p) =>
+        p.id === updatedSale.productId
+          ? { ...p, stock: product.stock + oldSale.quantity }
+          : p,
+      );
+    }
+
     let updatedClients = [...db.clients];
 
     if (oldSale.status === "paid" && updatedSale.status !== "paid") {
       updatedClients = updatedClients.map((c) =>
         c.id === oldSale.clientId
-          ? { ...c, totalPurchases: c.totalPurchases - oldSale.total }
+          ? {
+              ...c,
+              totalPurchases: Math.max(0, c.totalPurchases - oldSale.total),
+            }
           : c,
       );
     } else if (oldSale.status !== "paid" && updatedSale.status === "paid") {
@@ -141,7 +249,10 @@ export function DBProvider({ children, preferences }: DBProviderProps) {
     ) {
       updatedClients = updatedClients.map((c) => {
         if (c.id === oldSale.clientId) {
-          return { ...c, totalPurchases: c.totalPurchases - oldSale.total };
+          return {
+            ...c,
+            totalPurchases: Math.max(0, c.totalPurchases - oldSale.total),
+          };
         }
         if (c.id === updatedSale.clientId && updatedSale.status === "paid") {
           return { ...c, totalPurchases: c.totalPurchases + updatedSale.total };
@@ -155,7 +266,7 @@ export function DBProvider({ children, preferences }: DBProviderProps) {
       const diff = updatedSale.total - oldSale.total;
       updatedClients = updatedClients.map((c) =>
         c.id === updatedSale.clientId
-          ? { ...c, totalPurchases: c.totalPurchases + diff }
+          ? { ...c, totalPurchases: Math.max(0, c.totalPurchases + diff) }
           : c,
       );
     }
@@ -167,6 +278,7 @@ export function DBProvider({ children, preferences }: DBProviderProps) {
     await updateDB({
       ...db,
       sales: updatedSales,
+      products: updatedProducts,
       clients: updatedClients,
     });
   };
@@ -230,10 +342,21 @@ export function DBProvider({ children, preferences }: DBProviderProps) {
     await updateDB({ ...db, clients: db.clients.filter((c) => c.id !== id) });
   };
 
+  const checkStockAvailability = (
+    productId: string,
+    quantity: number,
+  ): boolean => {
+    if (!db) return false;
+    const product = db.products.find((p) => p.id === productId);
+    if (!product) return false;
+    return product.stock >= quantity;
+  };
+
   return (
     <DBContext.Provider
       value={{
         db,
+        preferences,
         updateDB,
         addSale,
         addProduct,
@@ -245,6 +368,7 @@ export function DBProvider({ children, preferences }: DBProviderProps) {
         updateProduct,
         updateSale,
         updateClient,
+        checkStockAvailability,
       }}
     >
       {children}

@@ -3,13 +3,14 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import {
-    Animated,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Animated,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
+import { useTranslation } from "../../hooks/use-translation";
 
 interface SetupScreenProps {
   onComplete: (userPrefs: UserPreferences) => Promise<void>;
@@ -40,6 +41,8 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
   const [useMockData, setUseMockData] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
   const [fadeAnim] = useState(new Animated.Value(1));
+
+  const { t } = useTranslation(selectedLanguage);
 
   const animateTransition = (nextStep: number) => {
     Animated.sequence([
@@ -80,68 +83,6 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
     await onComplete(preferences);
   };
 
-  const getTranslations = () => {
-    const translations = {
-      pt: {
-        title: "Bem-vindo ao Vyro",
-        subtitle: "Configure seu painel de vendas",
-        languageStep: "Escolha seu idioma",
-        currencyStep: "Escolha sua moeda",
-        dataStep: "Dados de exemplo",
-        useMockData: "Usar dados de exemplo para começar",
-        mockDataHelp:
-          "Isso criará produtos, clientes e vendas de exemplo para você explorar",
-        startFresh: "Começar do zero",
-        freshHelp:
-          "Comece com um banco de dados vazio e adicione seus próprios dados",
-        next: "Próximo",
-        back: "Voltar",
-        start: "Começar",
-        step: "Passo",
-        of: "de",
-      },
-      en: {
-        title: "Welcome to Vyro",
-        subtitle: "Set up your sales dashboard",
-        languageStep: "Choose your language",
-        currencyStep: "Choose your currency",
-        dataStep: "Sample data",
-        useMockData: "Use sample data to get started",
-        mockDataHelp:
-          "This will create sample products, clients, and sales for you to explore",
-        startFresh: "Start from scratch",
-        freshHelp: "Start with an empty database and add your own data",
-        next: "Next",
-        back: "Back",
-        start: "Start",
-        step: "Step",
-        of: "of",
-      },
-      "es-AR": {
-        title: "Bienvenido a Vyro",
-        subtitle: "Configure su panel de ventas",
-        languageStep: "Elige tu idioma",
-        currencyStep: "Elige tu moneda",
-        dataStep: "Datos de ejemplo",
-        useMockData: "Usar datos de ejemplo para comenzar",
-        mockDataHelp:
-          "Esto creará productos, clientes y ventas de ejemplo para que explores",
-        startFresh: "Comenzar desde cero",
-        freshHelp:
-          "Comienza con una base de datos vacía y agrega tus propios datos",
-        next: "Siguiente",
-        back: "Atrás",
-        start: "Comenzar",
-        step: "Paso",
-        of: "de",
-      },
-    };
-
-    return translations[selectedLanguage] || translations.en;
-  };
-
-  const t = getTranslations();
-
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
@@ -169,13 +110,13 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
             <View style={styles.logoContainer}>
               <Text style={styles.logo}>📊</Text>
             </View>
-            <Text style={styles.title}>{t.title}</Text>
-            <Text style={styles.subtitle}>{t.subtitle}</Text>
+            <Text style={styles.title}>{t.welcome}</Text>
+            <Text style={styles.subtitle}>{t.setupDashboard}</Text>
           </View>
 
           {currentStep === 1 && (
             <View style={styles.stepContainer}>
-              <Text style={styles.stepTitle}>{t.languageStep}</Text>
+              <Text style={styles.stepTitle}>{t.chooseLanguage}</Text>
               <View style={styles.optionsGrid}>
                 {LANGUAGE_OPTIONS.map((lang) => (
                   <TouchableOpacity
@@ -203,7 +144,7 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
 
           {currentStep === 2 && (
             <View style={styles.stepContainer}>
-              <Text style={styles.stepTitle}>{t.currencyStep}</Text>
+              <Text style={styles.stepTitle}>{t.chooseCurrency}</Text>
               <View style={styles.optionsGrid}>
                 {CURRENCY_OPTIONS.map((curr) => (
                   <TouchableOpacity
@@ -231,7 +172,7 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
 
           {currentStep === 3 && (
             <View style={styles.stepContainer}>
-              <Text style={styles.stepTitle}>{t.dataStep}</Text>
+              <Text style={styles.stepTitle}>{t.sampleData}</Text>
 
               <TouchableOpacity
                 style={[
@@ -242,10 +183,10 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
               >
                 <View style={styles.dataOptionHeader}>
                   <Text style={styles.dataOptionIcon}>📦</Text>
-                  <Text style={styles.dataOptionTitle}>{t.useMockData}</Text>
+                  <Text style={styles.dataOptionTitle}>{t.useSampleData}</Text>
                 </View>
                 <Text style={styles.dataOptionDescription}>
-                  {t.mockDataHelp}
+                  {t.sampleDataHelp}
                 </Text>
                 {useMockData && (
                   <View style={styles.dataCheckmark}>
@@ -274,9 +215,9 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
               </TouchableOpacity>
 
               <View style={styles.previewContainer}>
-                <Text style={styles.previewTitle}>Your selection:</Text>
+                <Text style={styles.previewTitle}>{t.yourSelection}:</Text>
                 <View style={styles.previewItem}>
-                  <Text style={styles.previewLabel}>Language:</Text>
+                  <Text style={styles.previewLabel}>{t.language}:</Text>
                   <Text style={styles.previewValue}>
                     {
                       LANGUAGE_OPTIONS.find((l) => l.code === selectedLanguage)
@@ -285,7 +226,7 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
                   </Text>
                 </View>
                 <View style={styles.previewItem}>
-                  <Text style={styles.previewLabel}>Currency:</Text>
+                  <Text style={styles.previewLabel}>{t.currency}:</Text>
                   <Text style={styles.previewValue}>
                     {
                       CURRENCY_OPTIONS.find((c) => c.code === selectedCurrency)
@@ -294,9 +235,9 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
                   </Text>
                 </View>
                 <View style={styles.previewItem}>
-                  <Text style={styles.previewLabel}>Data:</Text>
+                  <Text style={styles.previewLabel}>{t.data}:</Text>
                   <Text style={styles.previewValue}>
-                    {useMockData ? "Sample data" : "Empty database"}
+                    {useMockData ? t.sampleData : t.startFresh}
                   </Text>
                 </View>
               </View>
