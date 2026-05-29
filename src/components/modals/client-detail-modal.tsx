@@ -8,8 +8,9 @@ import {
   View,
 } from "react-native";
 import { useDB } from "../../hooks/use-database";
+import { useTranslation } from "../../hooks/use-translation";
 import { Client } from "../../types";
-import { fmt } from "../../utils/helpers";
+import { formatCurrency } from "../../utils/helpers";
 import { ButtonRow } from "../common/button-row";
 import { Modal } from "../common/modal";
 import { EditClientModal } from "./edit-client-modal";
@@ -25,9 +26,11 @@ export function ClientDetailModal({
   onClose,
   onDelete,
 }: ClientDetailModalProps) {
-  const { db, deleteClient, updateClient } = useDB();
-
+  const { db, deleteClient, updateClient, preferences } = useDB();
+  const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
+
+  const currency = preferences?.currency || "BRL";
 
   const stats = useMemo(() => {
     const sales = db?.sales.filter((s) => s.clientId === client.id) || [];
@@ -72,7 +75,9 @@ export function ClientDetailModal({
               style={styles.contactButton}
             >
               <Text style={styles.contactIcon}>📧</Text>
-              <Text style={styles.contactText}>{client.email}</Text>
+              <Text style={styles.contactText}>
+                {client.email || t.noEmail}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -80,64 +85,64 @@ export function ClientDetailModal({
               style={styles.contactButton}
             >
               <Text style={styles.contactIcon}>📱</Text>
-              <Text style={styles.contactText}>{client.phone}</Text>
+              <Text style={styles.contactText}>
+                {client.phone || t.noPhone}
+              </Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.statsContainer}>
             <View style={styles.statBox}>
-              <Text style={styles.statBoxLabel}>Total Spent</Text>
-              <Text style={styles.statBoxValue}>{fmt(stats.totalSpent)}</Text>
+              <Text style={styles.statBoxLabel}>{t.totalSpent}</Text>
+              <Text style={styles.statBoxValue}>
+                {formatCurrency(stats.totalSpent, currency)}
+              </Text>
             </View>
             <View style={styles.statBox}>
-              <Text style={styles.statBoxLabel}>Avg. Order</Text>
-              <Text style={styles.statBoxValue}>{fmt(stats.averageOrder)}</Text>
+              <Text style={styles.statBoxLabel}>{t.averageOrder}</Text>
+              <Text style={styles.statBoxValue}>
+                {formatCurrency(stats.averageOrder, currency)}
+              </Text>
             </View>
           </View>
 
           <View style={styles.orderStats}>
-            <Text style={styles.sectionTitle}>Order Statistics</Text>
+            <Text style={styles.sectionTitle}>{t.orderStatistics}</Text>
 
             <View style={styles.orderStatRow}>
-              <Text style={styles.orderStatLabel}>Total Orders</Text>
+              <Text style={styles.orderStatLabel}>{t.totalOrders}</Text>
               <Text style={styles.orderStatValue}>{stats.totalOrders}</Text>
             </View>
 
             <View style={styles.orderStatRow}>
-              <Text style={styles.orderStatLabel}>Paid</Text>
+              <Text style={styles.orderStatLabel}>{t.paid}</Text>
               <Text style={[styles.orderStatValue, { color: "#6ee7b7" }]}>
                 {stats.paidOrders}
               </Text>
             </View>
 
             <View style={styles.orderStatRow}>
-              <Text style={styles.orderStatLabel}>Pending</Text>
+              <Text style={styles.orderStatLabel}>{t.pending}</Text>
               <Text style={[styles.orderStatValue, { color: "#fbbf24" }]}>
                 {stats.pendingOrders}
               </Text>
             </View>
 
             <View style={styles.orderStatRow}>
-              <Text style={styles.orderStatLabel}>Cancelled</Text>
+              <Text style={styles.orderStatLabel}>{t.cancelled}</Text>
               <Text style={[styles.orderStatValue, { color: "#f87171" }]}>
                 {stats.cancelledOrders}
               </Text>
             </View>
           </View>
 
-          <ButtonRow
-            onCancel={handleDelete}
-            onConfirm={onClose}
-            confirmLabel="Close"
-            cancelLabel="Delete Client"
-          />
-
           <TouchableOpacity
             onPress={() => setIsEditing(true)}
             style={styles.editButton}
           >
             <Text style={styles.editButtonText}>
-              Edit Client{"  "}
+              {t.editClient}
+              {"  "}
               <Pencil
                 size={14}
                 color={"#e8b84b"}
@@ -145,6 +150,13 @@ export function ClientDetailModal({
               />
             </Text>
           </TouchableOpacity>
+
+          <ButtonRow
+            onCancel={handleDelete}
+            onConfirm={onClose}
+            confirmLabel={t.close}
+            cancelLabel={t.deleteClient}
+          />
         </>
       ) : (
         <EditClientModal
@@ -200,6 +212,8 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: "#666",
     marginBottom: 8,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   statBoxValue: {
     fontSize: 18,

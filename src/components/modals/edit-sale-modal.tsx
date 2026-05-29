@@ -1,16 +1,19 @@
+import DateTimePicker from "@react-native-community/datetimepicker";
 import React, { useEffect, useState } from "react";
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useDB } from "../../hooks/use-database";
+import { useTranslation } from "../../hooks/use-translation";
 import { Sale, Status } from "../../types";
-import { fmt } from "../../utils/helpers";
+import { formatCurrency, formatDate } from "../../utils/helpers";
 import { ButtonRow } from "../common/button-row";
 import { Field } from "../common/field";
 import { Modal } from "../common/modal";
@@ -22,33 +25,60 @@ interface EditSaleModalProps {
 }
 
 export function EditSaleModal({ sale, onClose, onSave }: EditSaleModalProps) {
-  const { db, updateSale } = useDB();
+  const { db, updateSale, preferences } = useDB();
+  const { t, language } = useTranslation();
   const [productId, setProductId] = useState(sale.productId);
   const [clientId, setClientId] = useState(sale.clientId);
   const [quantity, setQuantity] = useState(String(sale.quantity));
-  const [date, setDate] = useState(sale.date);
+  const [date, setDate] = useState(new Date(sale.date));
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [status, setStatus] = useState<Status>(sale.status);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const currency = preferences?.currency || "BRL";
 
   useEffect(() => {
     setProductId(sale.productId);
     setClientId(sale.clientId);
     setQuantity(String(sale.quantity));
-    setDate(sale.date);
+    setDate(new Date(sale.date));
     setStatus(sale.status);
   }, [sale]);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!productId) newErrors.productId = "Product is required";
-    if (!clientId) newErrors.clientId = "Client is required";
+    if (!productId) newErrors.productId = t.productRequired;
+    if (!clientId) newErrors.clientId = t.clientRequired;
     const qty = parseInt(quantity);
-    if (isNaN(qty) || qty < 1)
-      newErrors.quantity = "Quantity must be at least 1";
-    if (!date) newErrors.date = "Date is required";
+    if (isNaN(qty) || qty < 1) newErrors.quantity = t.quantityMinOne;
+    if (!date) newErrors.date = t.dateRequired;
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const onDateChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(Platform.OS === "ios");
+    if (selectedDate) {
+      setDate(selectedDate);
+    }
+  };
+
+  const showDatepicker = () => {
+    setShowDatePicker(true);
+  };
+
+  const getStatusText = (statusKey: string) => {
+    switch (statusKey) {
+      case "paid":
+        return t.paidSingular;
+      case "pending":
+        return t.pendingSingular;
+      case "cancelled":
+        return t.cancelledSingular;
+      default:
+        return statusKey;
+    }
   };
 
   const handleSave = () => {
@@ -62,6 +92,7 @@ export function EditSaleModal({ sale, onClose, onSave }: EditSaleModalProps) {
     const qty = parseInt(quantity);
     const oldTotal = sale.total;
     const newTotal = qty * product.price;
+    const dateString = date.toISOString().slice(0, 10);
 
     const updatedSale: Sale = {
       ...sale,
@@ -72,18 +103,18 @@ export function EditSaleModal({ sale, onClose, onSave }: EditSaleModalProps) {
       quantity: qty,
       price: product.price,
       total: newTotal,
-      date,
+      date: dateString,
       status,
     };
 
     if (Math.abs(newTotal - oldTotal) > 0) {
       Alert.alert(
-        "Confirm Changes",
-        `Total will change from ${fmt(oldTotal)} to ${fmt(newTotal)}. Continue?`,
+        t.confirmChanges,
+        `${t.totalWillChange} ${formatCurrency(oldTotal, currency)} ${t.to} ${formatCurrency(newTotal, currency)}. ${t.continueQuestion}`,
         [
-          { text: "Cancel", style: "cancel" },
+          { text: t.cancel, style: "cancel" },
           {
-            text: "Continue",
+            text: t.continue,
             onPress: () => {
               if (onSave) {
                 onSave(updatedSale);
@@ -109,11 +140,13 @@ export function EditSaleModal({ sale, onClose, onSave }: EditSaleModalProps) {
 
   const selectedProduct = db.products.find((p) => p.id === productId);
   const selectedClient = db.clients.find((c) => c.id === clientId);
+  const qtyNum = parseInt(quantity) || 0;
+  const subtotal = selectedProduct ? qtyNum * selectedProduct.price : 0;
 
   return (
-    <Modal title="Edit Sale" onClose={onClose}>
+    <Modal title={t.editSale} onClose={onClose}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <Field label="Product" required error={errors.productId}>
+        <Field label={t.product} required error={errors.productId}>
           <View style={styles.pickerContainer}>
             {db.products.map((p) => (
               <TouchableOpacity
@@ -132,13 +165,15 @@ export function EditSaleModal({ sale, onClose, onSave }: EditSaleModalProps) {
                 >
                   {p.name}
                 </Text>
-                <Text style={styles.pickerOptionPrice}>{fmt(p.price)}</Text>
+                <Text style={styles.pickerOptionPrice}>
+                  {formatCurrency(p.price, currency)}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
         </Field>
 
-        <Field label="Client" required error={errors.clientId}>
+        <Field label={t.client} required error={errors.clientId}>
           <View style={styles.pickerContainer}>
             {db.clients.map((c) => (
               <TouchableOpacity
@@ -162,28 +197,40 @@ export function EditSaleModal({ sale, onClose, onSave }: EditSaleModalProps) {
           </View>
         </Field>
 
-        <Field label="Quantity" required error={errors.quantity}>
+        <Field label={t.quantity} required error={errors.quantity}>
           <TextInput
             style={styles.input}
             keyboardType="numeric"
             value={quantity}
             onChangeText={setQuantity}
-            placeholder="1"
+            placeholder={t.enterQuantity}
             placeholderTextColor="#666"
           />
         </Field>
 
-        <Field label="Date" required error={errors.date}>
-          <TextInput
-            style={styles.input}
-            value={date}
-            onChangeText={setDate}
-            placeholder="YYYY-MM-DD"
-            placeholderTextColor="#666"
-          />
+        <Field label={t.date} required error={errors.date}>
+          <TouchableOpacity
+            style={styles.datePickerButton}
+            onPress={showDatepicker}
+          >
+            <Text style={styles.datePickerButtonText}>
+              {formatDate(date.toISOString(), language)}
+            </Text>
+            <Text style={styles.datePickerIcon}>📅</Text>
+          </TouchableOpacity>
+
+          {showDatePicker && (
+            <DateTimePicker
+              value={date}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={onDateChange}
+              maximumDate={new Date()}
+            />
+          )}
         </Field>
 
-        <Field label="Status">
+        <Field label={t.status}>
           <View style={styles.statusContainer}>
             {(["paid", "pending", "cancelled"] as Status[]).map((s) => (
               <TouchableOpacity
@@ -200,7 +247,7 @@ export function EditSaleModal({ sale, onClose, onSave }: EditSaleModalProps) {
                     status === s && styles.statusOptionTextSelected,
                   ]}
                 >
-                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                  {getStatusText(s)}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -209,17 +256,17 @@ export function EditSaleModal({ sale, onClose, onSave }: EditSaleModalProps) {
 
         {selectedProduct && selectedClient && (
           <View style={styles.previewContainer}>
-            <Text style={styles.previewLabel}>Preview</Text>
+            <Text style={styles.previewLabel}>{t.preview}</Text>
             <View style={styles.previewCard}>
               <View style={styles.previewRow}>
-                <Text style={styles.previewRowLabel}>Subtotal:</Text>
+                <Text style={styles.previewRowLabel}>{t.subtotal}:</Text>
                 <Text style={styles.previewRowValue}>
-                  {fmt(parseInt(quantity) * selectedProduct.price)}
+                  {formatCurrency(subtotal, currency)}
                 </Text>
               </View>
               <View style={styles.previewDivider} />
               <View style={styles.previewRow}>
-                <Text style={styles.previewRowLabel}>Status:</Text>
+                <Text style={styles.previewRowLabel}>{t.status}:</Text>
                 <Text
                   style={[
                     styles.previewRowValue,
@@ -233,7 +280,7 @@ export function EditSaleModal({ sale, onClose, onSave }: EditSaleModalProps) {
                     },
                   ]}
                 >
-                  {status}
+                  {getStatusText(status)}
                 </Text>
               </View>
             </View>
@@ -243,8 +290,8 @@ export function EditSaleModal({ sale, onClose, onSave }: EditSaleModalProps) {
         <ButtonRow
           onCancel={onClose}
           onConfirm={handleSave}
-          confirmLabel="Save Changes"
-          cancelLabel="Cancel"
+          confirmLabel={t.saveChanges}
+          cancelLabel={t.cancelEdit}
         />
       </ScrollView>
     </Modal>
@@ -291,6 +338,24 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 14,
     color: "#fff",
+  },
+  datePickerButton: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#1a1a1a",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.05)",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+  },
+  datePickerButtonText: {
+    fontSize: 14,
+    color: "#fff",
+  },
+  datePickerIcon: {
+    fontSize: 20,
   },
   statusContainer: {
     flexDirection: "row",

@@ -14,6 +14,7 @@ import {
 import * as XLSX from "xlsx";
 import { COLORS } from "../../constants";
 import { useDB } from "../../hooks/use-database";
+import { useTranslation } from "../../hooks/use-translation";
 import { DB } from "../../types";
 import { uid } from "../../utils/helpers";
 import { Modal } from "../common/modal";
@@ -25,8 +26,10 @@ interface IOModalProps {
 
 export function IOModal({ onClose, onImport }: IOModalProps) {
   const { db, updateDB } = useDB();
+  const { t } = useTranslation();
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   const handleExport = async () => {
     if (!db) return;
@@ -93,11 +96,14 @@ export function IOModal({ onClose, onImport }: IOModalProps) {
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(fileUri);
       } else {
-        Alert.alert("Error", "Sharing is not available on this device");
+        Alert.alert(
+          t.exportFailed || "Error",
+          t.sharingNotAvailable || "Sharing is not available on this device",
+        );
       }
     } catch (error) {
       console.error("Export error:", error);
-      Alert.alert("Export Failed", String(error));
+      Alert.alert(t.exportFailed || "Export Failed", String(error));
     } finally {
       setIsExporting(false);
     }
@@ -201,14 +207,20 @@ export function IOModal({ onClose, onImport }: IOModalProps) {
             clients: [...db.clients, ...(imported.clients ?? [])],
           });
         }
-        Alert.alert("Success", `Imported ${totalImported} new records`);
+        Alert.alert(
+          t.importSuccess || "Success",
+          `${t.imported} ${totalImported} ${t.newRecords}`,
+        );
         onClose();
       } else {
-        Alert.alert("Info", "No new records found to import");
+        Alert.alert(
+          t.info || "Info",
+          t.noNewRecordsFound || "No new records found to import",
+        );
       }
     } catch (error) {
       console.error("Import error:", error);
-      Alert.alert("Import Failed", String(error));
+      Alert.alert(t.importFailed || "Import Failed", String(error));
     } finally {
       setIsImporting(false);
     }
@@ -216,16 +228,42 @@ export function IOModal({ onClose, onImport }: IOModalProps) {
 
   const handleResetData = () => {
     Alert.alert(
-      "Reset Data",
-      "This will delete all your data and restore the sample data. This action cannot be undone.",
+      t.resetData || "Reset Data",
+      t.resetDataWarning ||
+        "This will delete all your data. This action cannot be undone.",
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t.cancel || "Cancel", style: "cancel" },
         {
-          text: "Reset",
+          text: t.reset || "Reset",
           style: "destructive",
           onPress: async () => {
-            // Implement reset logic
-            Alert.alert("Reset", "Data reset functionality would go here");
+            setIsResetting(true);
+            try {
+              const emptyDB: DB = {
+                sales: [],
+                products: [],
+                clients: [],
+              };
+
+              await updateDB(emptyDB);
+
+              Alert.alert(
+                t.dataReset || "Data Reset",
+                t.dataResetSuccess || "All data has been successfully deleted.",
+                [{ text: t.confirm || "OK" }],
+              );
+
+              onClose();
+            } catch (error) {
+              console.error("Reset error:", error);
+              Alert.alert(
+                t.error || "Error",
+                t.resetFailed || "Failed to reset data. Please try again.",
+                [{ text: t.confirm || "OK" }],
+              );
+            } finally {
+              setIsResetting(false);
+            }
           },
         },
       ],
@@ -233,9 +271,9 @@ export function IOModal({ onClose, onImport }: IOModalProps) {
   };
 
   return (
-    <Modal title="Data Management" onClose={onClose}>
+    <Modal title={t.dataManagement || "Data Management"} onClose={onClose}>
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Export</Text>
+        <Text style={styles.sectionTitle}>{t.export}</Text>
         <TouchableOpacity
           onPress={handleExport}
           style={styles.button}
@@ -248,17 +286,15 @@ export function IOModal({ onClose, onImport }: IOModalProps) {
               <Text style={styles.buttonIcon}>
                 <ChartNoAxesColumn size={20} color="#e5e5e5" />
               </Text>
-              <Text style={styles.buttonText}>Export as Excel (.xlsx)</Text>
+              <Text style={styles.buttonText}>{t.exportAsExcel}</Text>
             </>
           )}
         </TouchableOpacity>
-        <Text style={styles.buttonNote}>
-          Export all sales, products, and clients to an Excel file
-        </Text>
+        <Text style={styles.buttonNote}>{t.exportDescription}</Text>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Import</Text>
+        <Text style={styles.sectionTitle}>{t.import}</Text>
         <TouchableOpacity
           onPress={handleImport}
           style={styles.button}
@@ -271,18 +307,15 @@ export function IOModal({ onClose, onImport }: IOModalProps) {
               <Text style={styles.buttonIcon}>
                 <Import size={20} color="#e5e5e5" />
               </Text>
-              <Text style={styles.buttonText}>Import Excel File</Text>
+              <Text style={styles.buttonText}>{t.importExcelFile}</Text>
             </>
           )}
         </TouchableOpacity>
-        <Text style={styles.buttonNote}>
-          Import data from a previously exported file. Existing records are
-          preserved.
-        </Text>
+        <Text style={styles.buttonNote}>{t.importDescription}</Text>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Danger Zone</Text>
+        <Text style={styles.sectionTitle}>{t.dangerZone}</Text>
         <TouchableOpacity
           onPress={handleResetData}
           style={[styles.button, styles.dangerButton]}
@@ -291,16 +324,14 @@ export function IOModal({ onClose, onImport }: IOModalProps) {
             <TriangleAlert size={20} color="#e05252" />
           </Text>
           <Text style={[styles.buttonText, styles.dangerText]}>
-            Reset All Data
+            {t.resetAllData}
           </Text>
         </TouchableOpacity>
-        <Text style={styles.buttonNote}>
-          This will delete all your data. This action cannot be undone.
-        </Text>
+        <Text style={styles.buttonNote}>{t.resetDataWarningShort}</Text>
       </View>
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>Supported formats: .xlsx, .xls</Text>
+        <Text style={styles.footerText}>{t.supportedFormats}</Text>
       </View>
     </Modal>
   );

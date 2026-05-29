@@ -203,6 +203,38 @@ export interface Translations {
   quantityRequired: string;
   dateRequired: string;
   quantityMinOne: string;
+
+  // IOModal specific
+  dataManagement: string;
+  exportAsExcel: string;
+  exportDescription: string;
+  importExcelFile: string;
+  importDescription: string;
+  resetAllData: string;
+  resetDataWarning: string;
+  resetDataWarningShort: string;
+  resetFunctionality: string;
+  reset: string;
+  info: string;
+  imported: string;
+  newRecords: string;
+  noNewRecordsFound: string;
+  sharingNotAvailable: string;
+  supportedFormats: string;
+  dataReset: string;
+  dataResetSuccess: string;
+  resetFailed: string;
+  error: string;
+
+  // Client Detail Modal specific
+  orderStatistics: string;
+  noEmail: string;
+  noPhone: string;
+
+  // Edit Sale Modal specific
+  totalWillChange: string;
+  to: string;
+  continueQuestion: string;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -411,6 +443,44 @@ export const translations: Record<Language, Translations> = {
     quantityRequired: "Quantidade é obrigatória",
     dateRequired: "Data é obrigatória",
     quantityMinOne: "A quantidade deve ser pelo menos 1",
+
+    // IOModal specific
+    dataManagement: "Gerenciamento de Dados",
+    exportAsExcel: "Exportar como Excel (.xlsx)",
+    exportDescription:
+      "Exportar todas as vendas, produtos e clientes para um arquivo Excel",
+    importExcelFile: "Importar Arquivo Excel",
+    importDescription:
+      "Importar dados de um arquivo exportado anteriormente. Registros existentes são preservados.",
+    resetAllData: "Resetar Todos os Dados",
+    resetDataWarning:
+      "Isso excluirá todos os seus dados. Esta ação não pode ser desfeita.",
+    resetDataWarningShort:
+      "Isso excluirá todos os seus dados. Esta ação não pode ser desfeita.",
+    resetFunctionality:
+      "A funcionalidade de reset de dados seria implementada aqui",
+    reset: "Resetar",
+    info: "Informação",
+    imported: "Importado",
+    newRecords: "novos registros",
+    noNewRecordsFound: "Nenhum novo registro encontrado para importar",
+    sharingNotAvailable:
+      "Compartilhamento não está disponível neste dispositivo",
+    supportedFormats: "Formatos suportados: .xlsx, .xls",
+    dataReset: "Reset de Dados",
+    dataResetSuccess: "Todos os dados foram excluídos com sucesso.",
+    resetFailed: "Falha ao resetar os dados. Por favor, tente novamente.",
+    error: "Erro",
+
+    // Client Detail Modal specific
+    orderStatistics: "Estatísticas de Pedidos",
+    noEmail: "Sem e-mail",
+    noPhone: "Sem telefone",
+
+    // Edit Sale Modal specific
+    totalWillChange: "O total mudará de",
+    to: "para",
+    continueQuestion: "Continuar?",
   },
 
   en: {
@@ -616,6 +686,42 @@ export const translations: Record<Language, Translations> = {
     quantityRequired: "Quantity is required",
     dateRequired: "Date is required",
     quantityMinOne: "Quantity must be at least 1",
+
+    // IOModal specific
+    dataManagement: "Data Management",
+    exportAsExcel: "Export as Excel (.xlsx)",
+    exportDescription:
+      "Export all sales, products, and clients to an Excel file",
+    importExcelFile: "Import Excel File",
+    importDescription:
+      "Import data from a previously exported file. Existing records are preserved.",
+    resetAllData: "Reset All Data",
+    resetDataWarning:
+      "This will delete all your data. This action cannot be undone.",
+    resetDataWarningShort:
+      "This will delete all your data. This action cannot be undone.",
+    resetFunctionality: "Data reset functionality would go here",
+    reset: "Reset",
+    info: "Info",
+    imported: "Imported",
+    newRecords: "new records",
+    noNewRecordsFound: "No new records found to import",
+    sharingNotAvailable: "Sharing is not available on this device",
+    supportedFormats: "Supported formats: .xlsx, .xls",
+    dataReset: "Data Reset",
+    dataResetSuccess: "All data has been successfully deleted.",
+    resetFailed: "Failed to reset data. Please try again.",
+    error: "Error",
+
+    // Client Detail Modal specific
+    orderStatistics: "Order Statistics",
+    noEmail: "No email",
+    noPhone: "No phone",
+
+    // Edit Sale Modal specific
+    totalWillChange: "Total will change from",
+    to: "to",
+    continueQuestion: "Continue?",
   },
 
   "es-AR": {
@@ -823,5 +929,43 @@ export const translations: Record<Language, Translations> = {
     quantityRequired: "La cantidad es obligatoria",
     dateRequired: "La fecha es obligatoria",
     quantityMinOne: "La cantidad debe ser al menos 1",
+
+    // IOModal specific
+    dataManagement: "Gestión de Datos",
+    exportAsExcel: "Exportar como Excel (.xlsx)",
+    exportDescription:
+      "Exportar todas las ventas, productos y clientes a un archivo Excel",
+    importExcelFile: "Importar Archivo Excel",
+    importDescription:
+      "Importar datos de un archivo exportado anteriormente. Los registros existentes se conservan.",
+    resetAllData: "Restablecer Todos los Datos",
+    resetDataWarning:
+      "Esto eliminará todos sus datos. Esta acción no se puede deshacer.",
+    resetDataWarningShort:
+      "Esto eliminará todos sus datos. Esta acción no se puede deshacer.",
+    resetFunctionality:
+      "La funcionalidad de restablecimiento de datos iría aquí",
+    reset: "Restablecer",
+    info: "Información",
+    imported: "Importado",
+    newRecords: "nuevos registros",
+    noNewRecordsFound: "No se encontraron nuevos registros para importar",
+    sharingNotAvailable: "Compartir no está disponible en este dispositivo",
+    supportedFormats: "Formatos soportados: .xlsx, .xls",
+    dataReset: "Restablecimiento de Datos",
+    dataResetSuccess: "Todos los datos han sido eliminados exitosamente.",
+    resetFailed:
+      "Error al restablecer los datos. Por favor, intente nuevamente.",
+    error: "Error",
+
+    // Client Detail Modal specific
+    orderStatistics: "Estadísticas de Pedidos",
+    noEmail: "Sin correo",
+    noPhone: "Sin teléfono",
+
+    // Edit Sale Modal specific
+    totalWillChange: "El total cambiará de",
+    to: "a",
+    continueQuestion: "¿Continuar?",
   },
 };

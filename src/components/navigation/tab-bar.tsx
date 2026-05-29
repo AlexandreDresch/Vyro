@@ -6,6 +6,7 @@ import {
 } from "lucide-react-native";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useTranslation } from "../../hooks/use-translation";
 import { Tab } from "../../types";
 
 interface TabBarProps {
@@ -14,10 +15,12 @@ interface TabBarProps {
 }
 
 export function TabBar({ activeTab, onTabChange }: TabBarProps) {
+  const { t } = useTranslation();
+
   const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
     {
       id: "dashboard",
-      label: "Dashboard",
+      label: t.dashboard,
       icon: (
         <LayoutDashboard
           size={20}
@@ -27,7 +30,7 @@ export function TabBar({ activeTab, onTabChange }: TabBarProps) {
     },
     {
       id: "sales",
-      label: "Sales",
+      label: t.sales,
       icon: (
         <FileSpreadsheet
           size={20}
@@ -37,7 +40,7 @@ export function TabBar({ activeTab, onTabChange }: TabBarProps) {
     },
     {
       id: "products",
-      label: "Products",
+      label: t.products,
       icon: (
         <Package
           size={20}
@@ -47,7 +50,7 @@ export function TabBar({ activeTab, onTabChange }: TabBarProps) {
     },
     {
       id: "clients",
-      label: "Clients",
+      label: t.clients,
       icon: (
         <Users size={20} color={activeTab === "clients" ? "#e8b84b" : "#666"} />
       ),

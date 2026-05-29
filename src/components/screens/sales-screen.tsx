@@ -9,7 +9,13 @@ import {
   View,
 } from "react-native";
 import { useDB } from "../../hooks/use-database";
-import { fmt, initials, statusColor } from "../../utils/helpers";
+import { useTranslation } from "../../hooks/use-translation";
+import {
+  formatCurrency,
+  formatDate,
+  initials,
+  statusColor,
+} from "../../utils/helpers";
 import { ListItem } from "../common/list-item";
 
 interface SalesScreenProps {
@@ -17,9 +23,12 @@ interface SalesScreenProps {
 }
 
 export function SalesScreen({ onDetail }: SalesScreenProps) {
-  const { db } = useDB();
+  const { db, preferences } = useDB();
+  const { t, language } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+
+  const currency = preferences?.currency || "BRL";
 
   const filteredSales = useMemo(() => {
     if (!db) return [];
@@ -48,6 +57,19 @@ export function SalesScreen({ onDetail }: SalesScreenProps) {
     };
   }, [db]);
 
+  const getStatusText = (statusKey: string) => {
+    switch (statusKey) {
+      case "paid":
+        return t.paidSingular;
+      case "pending":
+        return t.pendingSingular;
+      case "cancelled":
+        return t.cancelledSingular;
+      default:
+        return statusKey;
+    }
+  };
+
   if (!db) return null;
 
   return (
@@ -58,33 +80,40 @@ export function SalesScreen({ onDetail }: SalesScreenProps) {
     >
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>Sales</Text>
-          <Text style={styles.subtitle}>{stats.total} transactions</Text>
+          <Text style={styles.title}>{t.sales}</Text>
+          <Text style={styles.subtitle}>
+            {stats.total} {t.transactions}
+          </Text>
         </View>
       </View>
 
-      <View style={styles.statsContainer}>
-        <View style={styles.statCard}>
-          <Text style={styles.statLabel}>Total</Text>
-          <Text style={styles.statValue}>{stats.total}</Text>
+      <View style={styles.statsWrapper}>
+        <View style={styles.statsRow}>
+          <View style={[styles.statCard, styles.statCardTotal]}>
+            <Text style={styles.statLabel}>{t.total}</Text>
+            <Text style={styles.statValue}>{stats.total}</Text>
+          </View>
+          <View style={[styles.statCard, styles.statCardPaid]}>
+            <Text style={styles.statLabel}>{t.paid}</Text>
+            <Text style={[styles.statValue, styles.statValuePaid]}>
+              {stats.paid}
+            </Text>
+          </View>
         </View>
-        <View style={[styles.statCard, styles.statCardPaid]}>
-          <Text style={styles.statLabel}>Paid</Text>
-          <Text style={[styles.statValue, styles.statValuePaid]}>
-            {stats.paid}
-          </Text>
-        </View>
-        <View style={[styles.statCard, styles.statCardPending]}>
-          <Text style={styles.statLabel}>Pending</Text>
-          <Text style={[styles.statValue, styles.statValuePending]}>
-            {stats.pending}
-          </Text>
-        </View>
-        <View style={[styles.statCard, styles.statCardCancelled]}>
-          <Text style={styles.statLabel}>Cancelled</Text>
-          <Text style={[styles.statValue, styles.statValueCancelled]}>
-            {stats.cancelled}
-          </Text>
+
+        <View style={styles.statsRow}>
+          <View style={[styles.statCard, styles.statCardPending]}>
+            <Text style={styles.statLabel}>{t.pending}</Text>
+            <Text style={[styles.statValue, styles.statValuePending]}>
+              {stats.pending}
+            </Text>
+          </View>
+          <View style={[styles.statCard, styles.statCardCancelled]}>
+            <Text style={styles.statLabel}>{t.cancelled}</Text>
+            <Text style={[styles.statValue, styles.statValueCancelled]}>
+              {stats.cancelled}
+            </Text>
+          </View>
         </View>
       </View>
 
@@ -92,7 +121,7 @@ export function SalesScreen({ onDetail }: SalesScreenProps) {
         <Search size={20} color="#666" style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search sales by product or client..."
+          placeholder={t.searchSales}
           placeholderTextColor="#666"
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -123,7 +152,7 @@ export function SalesScreen({ onDetail }: SalesScreenProps) {
               statusFilter === "all" && styles.filterTextActive,
             ]}
           >
-            All
+            {t.all}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -139,7 +168,7 @@ export function SalesScreen({ onDetail }: SalesScreenProps) {
               statusFilter === "paid" && styles.filterTextActive,
             ]}
           >
-            Paid
+            {t.paid}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -155,7 +184,7 @@ export function SalesScreen({ onDetail }: SalesScreenProps) {
               statusFilter === "pending" && styles.filterTextActive,
             ]}
           >
-            Pending
+            {t.pending}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -171,7 +200,7 @@ export function SalesScreen({ onDetail }: SalesScreenProps) {
               statusFilter === "cancelled" && styles.filterTextActive,
             ]}
           >
-            Cancelled
+            {t.cancelled}
           </Text>
         </TouchableOpacity>
       </ScrollView>
@@ -180,10 +209,8 @@ export function SalesScreen({ onDetail }: SalesScreenProps) {
         {filteredSales.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyIcon}>📭</Text>
-            <Text style={styles.emptyStateText}>No sales found</Text>
-            <Text style={styles.emptyStateSubtext}>
-              Try adjusting your search or filters
-            </Text>
+            <Text style={styles.emptyStateText}>{t.noSalesFound}</Text>
+            <Text style={styles.emptyStateSubtext}>{t.tryAdjustingSearch}</Text>
           </View>
         ) : (
           filteredSales.map((s) => {
@@ -194,9 +221,13 @@ export function SalesScreen({ onDetail }: SalesScreenProps) {
                 color={cl?.color ?? "#888"}
                 avatarContent={initials(s.client)}
                 name={s.product}
-                sub={`${s.client} · ${s.date}`}
+                sub={`${s.client} · ${formatDate(s.date, language)}`}
                 onClick={() => onDetail(s.id)}
-                rightTop={<Text style={styles.amountText}>{fmt(s.total)}</Text>}
+                rightTop={
+                  <Text style={styles.amountText}>
+                    {formatCurrency(s.total, currency)}
+                  </Text>
+                }
                 rightBottom={
                   <View
                     style={[
@@ -210,7 +241,7 @@ export function SalesScreen({ onDetail }: SalesScreenProps) {
                         { color: statusColor[s.status].text },
                       ]}
                     >
-                      {s.status}
+                      {getStatusText(s.status)}
                     </Text>
                   </View>
                 }
@@ -246,11 +277,14 @@ const styles = StyleSheet.create({
     color: "#666",
     marginTop: 4,
   },
-  statsContainer: {
-    flexDirection: "row",
+  statsWrapper: {
     paddingHorizontal: 20,
-    gap: 12,
     marginBottom: 20,
+    gap: 12,
+  },
+  statsRow: {
+    flexDirection: "row",
+    gap: 12,
   },
   statCard: {
     flex: 1,
@@ -259,6 +293,10 @@ const styles = StyleSheet.create({
     padding: 12,
     alignItems: "center",
     borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.05)",
+  },
+  statCardTotal: {
+    backgroundColor: "#111",
     borderColor: "rgba(255,255,255,0.05)",
   },
   statCardPaid: {
@@ -277,9 +315,11 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: "#666",
     marginBottom: 6,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   statValue: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "700",
     color: "#fff",
   },

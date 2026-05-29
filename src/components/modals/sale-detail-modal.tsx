@@ -2,8 +2,9 @@ import { Pencil } from "lucide-react-native";
 import React, { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useDB } from "../../hooks/use-database";
+import { useTranslation } from "../../hooks/use-translation";
 import { Sale, Status } from "../../types";
-import { fmt, statusColor } from "../../utils/helpers";
+import { formatCurrency, formatDate, statusColor } from "../../utils/helpers";
 import { ButtonRow } from "../common/button-row";
 import { Modal } from "../common/modal";
 import { EditSaleModal } from "./edit-sale-modal";
@@ -19,8 +20,11 @@ export function SaleDetailModal({
   onClose,
   onDelete,
 }: SaleDetailModalProps) {
-  const { deleteSale, updateSale } = useDB();
+  const { deleteSale, updateSale, preferences } = useDB();
+  const { t, language } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
+
+  const currency = preferences?.currency || "BRL";
 
   const handleDelete = () => {
     if (onDelete) {
@@ -31,18 +35,39 @@ export function SaleDetailModal({
     }
   };
 
+  const getStatusText = (statusKey: string) => {
+    switch (statusKey) {
+      case "paid":
+        return t.paidSingular;
+      case "pending":
+        return t.pendingSingular;
+      case "cancelled":
+        return t.cancelledSingular;
+      default:
+        return statusKey;
+    }
+  };
+
   const detailRows = [
-    { label: "Product", value: sale.product, highlight: false },
-    { label: "Client", value: sale.client, highlight: false },
-    { label: "Date", value: sale.date, highlight: false },
-    { label: "Quantity", value: String(sale.quantity), highlight: false },
-    { label: "Unit Price", value: fmt(sale.price), highlight: false },
-    { label: "Total", value: fmt(sale.total), highlight: true },
-    { label: "Status", value: sale.status, isStatus: true },
+    { label: t.product, value: sale.product, highlight: false },
+    { label: t.client, value: sale.client, highlight: false },
+    { label: t.date, value: formatDate(sale.date, language), highlight: false },
+    { label: t.quantity, value: String(sale.quantity), highlight: false },
+    {
+      label: t.unitPrice,
+      value: formatCurrency(sale.price, currency),
+      highlight: false,
+    },
+    {
+      label: t.total,
+      value: formatCurrency(sale.total, currency),
+      highlight: true,
+    },
+    { label: t.status, value: getStatusText(sale.status), isStatus: true },
   ];
 
   return (
-    <Modal title="Sale Details" onClose={onClose}>
+    <Modal title={t.saleDetails} onClose={onClose}>
       {!isEditing ? (
         <>
           {detailRows.map((row, index) => (
@@ -76,19 +101,14 @@ export function SaleDetailModal({
               )}
             </View>
           ))}
-          <ButtonRow
-            onCancel={handleDelete}
-            onConfirm={onClose}
-            confirmLabel="Close"
-            cancelLabel="Delete"
-          />
 
           <TouchableOpacity
             onPress={() => setIsEditing(true)}
             style={styles.editButton}
           >
             <Text style={styles.editButtonText}>
-              Edit Sale{"  "}
+              {t.editSale}
+              {"  "}
               <Pencil
                 size={14}
                 color={"#e8b84b"}
@@ -96,6 +116,13 @@ export function SaleDetailModal({
               />
             </Text>
           </TouchableOpacity>
+
+          <ButtonRow
+            onCancel={handleDelete}
+            onConfirm={onClose}
+            confirmLabel={t.close}
+            cancelLabel={t.deleteSale}
+          />
         </>
       ) : (
         <EditSaleModal
