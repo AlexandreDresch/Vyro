@@ -235,6 +235,59 @@ export interface Translations {
   totalWillChange: string;
   to: string;
   continueQuestion: string;
+
+  // Products Screen specific
+  totalProducts: string;
+
+  // Product Categories
+  categoryElectronics: string;
+  categoryClothing: string;
+  categoryFood: string;
+  categoryHome: string;
+  categoryBeauty: string;
+  categorySports: string;
+  categoryToys: string;
+  categoryBooks: string;
+  categoryHealth: string;
+  categoryAutomotive: string;
+  categoryOthers: string;
+  allCategories: string;
+
+  // Product Detail Modal specific
+  salesPerformance: string;
+  criticalStock: string;
+
+  // Edit Product Modal specific
+  productNameRequired: string;
+  validPriceRequired: string;
+  validStockRequired: string;
+  enterProductName: string;
+  previewFutureSales: string;
+  historicalSalesData: string;
+  historicalRevenue: string;
+  historicalDataNote: string;
+  changesAffectFutureOnly: string;
+
+  // Clients Screen specific
+  sortBy: string;
+  sortByName: string;
+  sortBySpent: string;
+  vip: string;
+
+  // Edit Client Modal specific
+  enterClientName: string;
+  clientNameRequired: string;
+  invalidEmailFormat: string;
+  emailExample: string;
+  phoneExample: string;
+  clientStatistics: string;
+  pendingOrders: string;
+  clientName: string;
+  warning: string;
+
+  // Phone number specific
+  invalidPhoneNumber: string;
+  enterPhoneNumber: string;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -481,6 +534,62 @@ export const translations: Record<Language, Translations> = {
     totalWillChange: "O total mudará de",
     to: "para",
     continueQuestion: "Continuar?",
+
+    // Products Screen specific
+    totalProducts: "Total de Produtos",
+
+    // Product Categories
+    categoryElectronics: "Eletrônicos",
+    categoryClothing: "Vestuário",
+    categoryFood: "Alimentos",
+    categoryHome: "Casa",
+    categoryBeauty: "Beleza",
+    categorySports: "Esportes",
+    categoryToys: "Brinquedos",
+    categoryBooks: "Livros",
+    categoryHealth: "Saúde",
+    categoryAutomotive: "Automotivo",
+    categoryOthers: "Outros",
+    allCategories: "Todas Categorias",
+
+    // Product Detail Modal specific
+    salesPerformance: "Desempenho de Vendas",
+    criticalStock: "Estoque Crítico",
+
+    // Edit Product Modal specific
+
+    productNameRequired: "Nome do produto é obrigatório",
+    validPriceRequired: "Preço válido é obrigatório",
+    validStockRequired: "Quantidade de estoque válida é obrigatória",
+    enterProductName: "Digite o nome do produto",
+
+    previewFutureSales: "Pré-visualização (Vendas Futuras)",
+    historicalSalesData: "Dados Históricos de Vendas (Não Afetados)",
+    historicalRevenue: "Receita Histórica",
+    historicalDataNote:
+      "Nota: Alterações no nome/preço NÃO afetarão estes valores históricos. Vendas existentes manterão seu nome e preço originais.",
+    changesAffectFutureOnly: "Alterações afetarão APENAS vendas futuras.",
+
+    // Clients Screen specific
+    sortBy: "Ordenar por",
+    sortByName: "Nome",
+    sortBySpent: "Total Gasto",
+    vip: "VIP",
+
+    // Edit Client Modal specific
+    enterClientName: "Digite o nome do cliente",
+    clientNameRequired: "Nome do cliente é obrigatório",
+    invalidEmailFormat: "Formato de e-mail inválido",
+    emailExample: "email@exemplo.com",
+    phoneExample: "+55 11 91234-5678",
+    clientStatistics: "Estatísticas do Cliente",
+    pendingOrders: "Pedidos Pendentes",
+    clientName: "Nome do Cliente",
+    warning: "Aviso",
+
+    // Phone number specific
+    invalidPhoneNumber: "Número de telefone inválido",
+    enterPhoneNumber: "Digite o número de telefone",
   },
 
   en: {
@@ -722,6 +831,60 @@ export const translations: Record<Language, Translations> = {
     totalWillChange: "Total will change from",
     to: "to",
     continueQuestion: "Continue?",
+
+    // Products Screen specific
+    totalProducts: "Total Products",
+
+    // Product Categories
+    categoryElectronics: "Electronics",
+    categoryClothing: "Clothing",
+    categoryFood: "Food",
+    categoryHome: "Home",
+    categoryBeauty: "Beauty",
+    categorySports: "Sports",
+    categoryToys: "Toys",
+    categoryBooks: "Books",
+    categoryHealth: "Health",
+    categoryAutomotive: "Automotive",
+    categoryOthers: "Others",
+    allCategories: "All Categories",
+
+    // Product Detail Modal specific
+    salesPerformance: "Sales Performance",
+    criticalStock: "Critical Stock",
+
+    // Edit Product Modal specific
+    productNameRequired: "Product name is required",
+    validPriceRequired: "Valid price is required",
+    validStockRequired: "Valid stock quantity is required",
+    enterProductName: "Enter product name",
+    previewFutureSales: "Preview (Future Sales)",
+    historicalSalesData: "Historical Sales Data (Unaffected)",
+    historicalRevenue: "Historical Revenue",
+    historicalDataNote:
+      "Note: Changes to name/price will NOT affect these historical values. Existing sales will retain their original name and price.",
+    changesAffectFutureOnly: "Changes will only affect future sales.",
+
+    // Clients Screen specific
+    sortBy: "Sort by",
+    sortByName: "Name",
+    sortBySpent: "Total Spent",
+    vip: "VIP",
+
+    // Edit Client Modal specific
+    enterClientName: "Enter client name",
+    clientNameRequired: "Client name is required",
+    invalidEmailFormat: "Invalid email format",
+    emailExample: "example@domain.com",
+    phoneExample: "+1 555-123-4567",
+    clientStatistics: "Client Statistics",
+    pendingOrders: "Pending Orders",
+    clientName: "Client Name",
+    warning: "Warning",
+
+    // Phone number specific
+    invalidPhoneNumber: "Invalid phone number",
+    enterPhoneNumber: "Enter phone number",
   },
 
   "es-AR": {
@@ -967,5 +1130,60 @@ export const translations: Record<Language, Translations> = {
     totalWillChange: "El total cambiará de",
     to: "a",
     continueQuestion: "¿Continuar?",
+
+    // Products Screen specific
+    totalProducts: "Total de Productos",
+
+    // Product Categories
+    categoryElectronics: "Electrónicos",
+    categoryClothing: "Ropa",
+    categoryFood: "Comida",
+    categoryHome: "Hogar",
+    categoryBeauty: "Belleza",
+    categorySports: "Deportes",
+    categoryToys: "Juguetes",
+    categoryBooks: "Libros",
+    categoryHealth: "Salud",
+    categoryAutomotive: "Automotriz",
+    categoryOthers: "Otros",
+    allCategories: "Todas las Categorías",
+
+    // Product Detail Modal specific
+    salesPerformance: "Desempeño de Ventas",
+    criticalStock: "Stock Crítico",
+
+    // Edit Product Modal specific
+    productNameRequired: "El nombre del producto es obligatorio",
+    validPriceRequired: "Precio válido es obligatorio",
+    validStockRequired: "Cantidad de stock válida es obligatoria",
+    enterProductName: "Ingrese el nombre del producto",
+
+    previewFutureSales: "Vista Previa (Ventas Futuras)",
+    historicalSalesData: "Datos Históricos de Ventas (No Afectados)",
+    historicalRevenue: "Ingresos Históricos",
+    historicalDataNote:
+      "Nota: Los cambios en nombre/precio NO afectarán estas cifras históricas. Las ventas existentes mantendrán su nombre y precio originales.",
+    changesAffectFutureOnly: "Los cambios afectarán SOLO a las ventas futuras.",
+
+    // Clients Screen specific
+    sortBy: "Ordenar por",
+    sortByName: "Nombre",
+    sortBySpent: "Total Gastado",
+    vip: "VIP",
+
+    // Edit Client Modal specific
+    enterClientName: "Ingrese el nombre del cliente",
+    clientNameRequired: "El nombre del cliente es obligatorio",
+    invalidEmailFormat: "Formato de correo inválido",
+    emailExample: "ejemplo@dominio.com",
+    phoneExample: "+1 555-123-4567",
+    clientStatistics: "Estadísticas del Cliente",
+    pendingOrders: "Pedidos Pendientes",
+    clientName: "Nombre del Cliente",
+    warning: "Advertencia",
+
+    // Phone number specific
+    invalidPhoneNumber: "Número de teléfono inválido",
+    enterPhoneNumber: "Ingrese el número de teléfono",
   },
 };

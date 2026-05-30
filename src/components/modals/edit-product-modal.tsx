@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from "react";
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { CATEGORIES, COLORS } from "../../constants";
 import { useDB } from "../../hooks/use-database";
+import { useTranslation } from "../../hooks/use-translation";
 import { Product } from "../../types";
-import { fmt } from "../../utils/helpers";
+import { formatCurrency } from "../../utils/helpers";
 import { ButtonRow } from "../common/button-row";
 import { Field } from "../common/field";
 import { Modal } from "../common/modal";
@@ -27,13 +28,16 @@ export function EditProductModal({
   onClose,
   onSave,
 }: EditProductModalProps) {
-  const { db, updateProduct } = useDB();
+  const { db, updateProduct, preferences } = useDB();
+  const { t } = useTranslation();
   const [name, setName] = useState(product.name);
   const [category, setCategory] = useState(product.category);
   const [price, setPrice] = useState(String(product.price));
   const [stock, setStock] = useState(String(product.stock));
   const [color, setColor] = useState(product.color);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const currency = preferences?.currency || "BRL";
 
   useEffect(() => {
     setName(product.name);
@@ -45,14 +49,30 @@ export function EditProductModal({
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!name.trim()) newErrors.name = "Product name is required";
+    if (!name.trim()) newErrors.name = t.productNameRequired;
     if (!price || parseFloat(price) <= 0)
-      newErrors.price = "Valid price is required";
-    if (!stock || parseInt(stock) < 0)
-      newErrors.stock = "Valid stock quantity is required";
+      newErrors.price = t.validPriceRequired;
+    if (!stock || parseInt(stock) < 0) newErrors.stock = t.validStockRequired;
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const getTranslatedCategory = (cat: string): string => {
+    const categoryMap: Record<string, string> = {
+      Electronics: t.categoryElectronics,
+      Clothing: t.categoryClothing,
+      Food: t.categoryFood,
+      Home: t.categoryHome,
+      Beauty: t.categoryBeauty,
+      Sports: t.categorySports,
+      Toys: t.categoryToys,
+      Books: t.categoryBooks,
+      Health: t.categoryHealth,
+      Automotive: t.categoryAutomotive,
+      Others: t.categoryOthers,
+    };
+    return categoryMap[cat] || cat;
   };
 
   const handleSave = () => {
@@ -75,12 +95,16 @@ export function EditProductModal({
       (product.price !== parseFloat(price) || product.name !== name.trim())
     ) {
       Alert.alert(
-        "Important Notice",
-        `This product has ${salesCount} historical sale(s).\n\nChanges to the product name or price will ONLY affect future sales. Existing sales will retain their original name and price for accurate historical reporting.\n\nContinue with changes?`,
+        t.importantNotice,
+        t.productHasHistoricalSales.replace("{count}", String(salesCount)) +
+          "\n\n" +
+          t.changesAffectFutureSalesOnly +
+          "\n\n" +
+          t.continueQuestion,
         [
-          { text: "Cancel", style: "cancel" },
+          { text: t.cancel, style: "cancel" },
           {
-            text: "Continue",
+            text: t.continue,
             onPress: () => {
               if (onSave) {
                 onSave(updatedProduct);
@@ -115,34 +139,39 @@ export function EditProductModal({
       .reduce((sum, s) => sum + s.total, 0) || 0;
 
   return (
-    <Modal title="Edit Product" onClose={onClose}>
+    <Modal title={t.editProduct} onClose={onClose}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {salesCount > 0 && (
           <View style={styles.warningBanner}>
             <Text style={styles.warningIcon}>⚠️</Text>
             <Text style={styles.warningText}>
-              This product has {salesCount} historical sale(s). Changes will
-              only affect future sales.
+              {t.productHasHistoricalSales.replace(
+                "{count}",
+                String(salesCount),
+              )}{" "}
+              {t.changesAffectFutureOnly}
             </Text>
           </View>
         )}
 
-        <Field label="Product Name" required error={errors.name}>
+        <Field label={t.productName} required error={errors.name}>
           <TextInput
             style={styles.input}
-            placeholder="Enter product name"
+            placeholder={t.enterProductName}
             placeholderTextColor="#666"
             value={name}
             onChangeText={setName}
           />
           {salesCount > 0 && product.name !== name && (
             <Text style={styles.hintText}>
-              Current name in {salesCount} sale(s): "{product.name}"
+              {t.currentNameInSales
+                .replace("{count}", String(salesCount))
+                .replace("{name}", product.name)}
             </Text>
           )}
         </Field>
 
-        <Field label="Category" required>
+        <Field label={t.category} required>
           <View style={styles.categoryContainer}>
             {CATEGORIES.map((cat) => (
               <TouchableOpacity
@@ -159,14 +188,14 @@ export function EditProductModal({
                     category === cat && styles.categoryTextSelected,
                   ]}
                 >
-                  {cat}
+                  {getTranslatedCategory(cat)}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
         </Field>
 
-        <Field label="Price (R$)" required error={errors.price}>
+        <Field label={t.price} required error={errors.price}>
           <TextInput
             style={styles.input}
             keyboardType="numeric"
@@ -177,13 +206,14 @@ export function EditProductModal({
           />
           {salesCount > 0 && product.price !== parseFloat(price) && (
             <Text style={styles.hintText}>
-              Historical price: {fmt(product.price)} (affects {salesCount}{" "}
-              existing sale(s))
+              {t.historicalPrice
+                .replace("{price}", formatCurrency(product.price, currency))
+                .replace("{count}", String(salesCount))}
             </Text>
           )}
         </Field>
 
-        <Field label="Stock Quantity" required error={errors.stock}>
+        <Field label={t.stockQuantity} required error={errors.stock}>
           <TextInput
             style={styles.input}
             keyboardType="numeric"
@@ -194,7 +224,7 @@ export function EditProductModal({
           />
         </Field>
 
-        <Field label="Product Color">
+        <Field label={t.productColor}>
           <View style={styles.colorContainer}>
             <TouchableOpacity
               style={[styles.colorPreview, { backgroundColor: color }]}
@@ -203,25 +233,30 @@ export function EditProductModal({
               onPress={getRandomColor}
               style={styles.randomColorButton}
             >
-              <Text style={styles.randomColorText}>🎨 Random Color</Text>
+              <Text style={styles.randomColorText}>{t.randomColor}</Text>
             </TouchableOpacity>
           </View>
         </Field>
 
-        {/* Preview Section */}
         <View style={styles.previewContainer}>
-          <Text style={styles.previewLabel}>Preview (Future Sales)</Text>
+          <Text style={styles.previewLabel}>{t.previewFutureSales}</Text>
           <View style={styles.previewCard}>
             <View style={[styles.previewColor, { backgroundColor: color }]} />
             <View style={styles.previewInfo}>
-              <Text style={styles.previewName}>{name || "Product Name"}</Text>
-              <Text style={styles.previewCategory}>{category}</Text>
+              <Text style={styles.previewName}>{name || t.productName}</Text>
+              <Text style={styles.previewCategory}>
+                {getTranslatedCategory(category)}
+              </Text>
               <Text style={styles.previewPrice}>
-                {price ? `R$ ${parseFloat(price).toFixed(2)}` : "R$ 0.00"}
+                {price
+                  ? formatCurrency(parseFloat(price), currency)
+                  : formatCurrency(0, currency)}
               </Text>
               <View style={styles.previewStock}>
-                <Text style={styles.previewStockLabel}>Stock:</Text>
-                <Text style={styles.previewStockValue}>{stock || 0} units</Text>
+                <Text style={styles.previewStockLabel}>{t.stock}:</Text>
+                <Text style={styles.previewStockValue}>
+                  {stock || 0} {t.units}
+                </Text>
               </View>
             </View>
           </View>
@@ -229,25 +264,20 @@ export function EditProductModal({
 
         {salesCount > 0 && (
           <View style={styles.statsContainer}>
-            <Text style={styles.statsLabel}>
-              Historical Sales Data (Unaffected)
-            </Text>
+            <Text style={styles.statsLabel}>{t.historicalSalesData}</Text>
             <View style={styles.statsCard}>
               <View style={styles.statRow}>
-                <Text style={styles.statLabel}>Total Sales</Text>
+                <Text style={styles.statLabel}>{t.totalSales}</Text>
                 <Text style={styles.statValue}>{salesCount}</Text>
               </View>
               <View style={styles.statRow}>
-                <Text style={styles.statLabel}>Historical Revenue</Text>
+                <Text style={styles.statLabel}>{t.historicalRevenue}</Text>
                 <Text style={[styles.statValue, styles.statValueAccent]}>
-                  {fmt(historicalRevenue)}
+                  {formatCurrency(historicalRevenue, currency)}
                 </Text>
               </View>
               <View style={styles.statDivider} />
-              <Text style={styles.statNote}>
-                Note: Changes to name/price will NOT affect these historical
-                figures. Existing sales will keep their original name and price.
-              </Text>
+              <Text style={styles.statNote}>{t.historicalDataNote}</Text>
             </View>
           </View>
         )}
@@ -255,8 +285,8 @@ export function EditProductModal({
         <ButtonRow
           onCancel={onClose}
           onConfirm={handleSave}
-          confirmLabel="Save Changes"
-          cancelLabel="Cancel"
+          confirmLabel={t.saveChanges}
+          cancelLabel={t.cancel}
         />
       </ScrollView>
     </Modal>

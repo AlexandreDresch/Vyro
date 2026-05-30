@@ -9,7 +9,8 @@ import {
   View,
 } from "react-native";
 import { useDB } from "../../hooks/use-database";
-import { fmt, initials } from "../../utils/helpers";
+import { useTranslation } from "../../hooks/use-translation";
+import { formatCurrency, initials } from "../../utils/helpers";
 import { ListItem } from "../common/list-item";
 
 interface ClientsScreenProps {
@@ -17,9 +18,12 @@ interface ClientsScreenProps {
 }
 
 export function ClientsScreen({ onDetail }: ClientsScreenProps) {
-  const { db } = useDB();
+  const { db, preferences } = useDB();
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"name" | "spent">("name");
+
+  const currency = preferences?.currency || "BRL";
 
   const filteredAndSortedClients = useMemo(() => {
     if (!db) return [];
@@ -68,25 +72,29 @@ export function ClientsScreen({ onDetail }: ClientsScreenProps) {
     >
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>Clients</Text>
-          <Text style={styles.subtitle}>{stats.total} contacts</Text>
+          <Text style={styles.title}>{t.clients}</Text>
+          <Text style={styles.subtitle}>
+            {stats.total} {t.contacts}
+          </Text>
         </View>
       </View>
 
       <View style={styles.statsContainer}>
         <View style={styles.statCard}>
-          <Text style={styles.statLabel}>Total Clients</Text>
+          <Text style={styles.statLabel}>{t.totalClients}</Text>
           <Text style={styles.statValue}>{stats.total}</Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={styles.statLabel}>Total Spent</Text>
+          <Text style={styles.statLabel}>{t.totalSpent}</Text>
           <Text style={[styles.statValue, styles.statValueAccent]}>
-            {fmt(stats.totalSpent)}
+            {formatCurrency(stats.totalSpent, currency)}
           </Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={styles.statLabel}>Average Spent</Text>
-          <Text style={styles.statValue}>{fmt(stats.averageSpent)}</Text>
+          <Text style={styles.statLabel}>{t.averageSpent}</Text>
+          <Text style={styles.statValue}>
+            {formatCurrency(stats.averageSpent, currency)}
+          </Text>
         </View>
       </View>
 
@@ -94,7 +102,7 @@ export function ClientsScreen({ onDetail }: ClientsScreenProps) {
         <Search size={20} color="#666" style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search clients by name, email, or phone..."
+          placeholder={t.searchClients}
           placeholderTextColor="#666"
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -107,7 +115,7 @@ export function ClientsScreen({ onDetail }: ClientsScreenProps) {
       </View>
 
       <View style={styles.sortContainer}>
-        <Text style={styles.sortLabel}>Sort by:</Text>
+        <Text style={styles.sortLabel}>{t.sortBy}:</Text>
         <TouchableOpacity
           style={[
             styles.sortButton,
@@ -121,7 +129,7 @@ export function ClientsScreen({ onDetail }: ClientsScreenProps) {
               sortBy === "name" && styles.sortButtonTextActive,
             ]}
           >
-            Name
+            {t.sortByName}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -137,7 +145,7 @@ export function ClientsScreen({ onDetail }: ClientsScreenProps) {
               sortBy === "spent" && styles.sortButtonTextActive,
             ]}
           >
-            Total Spent
+            {t.sortBySpent}
           </Text>
         </TouchableOpacity>
       </View>
@@ -146,10 +154,8 @@ export function ClientsScreen({ onDetail }: ClientsScreenProps) {
         {filteredAndSortedClients.length === 0 ? (
           <View style={styles.emptyState}>
             <Users size={48} color="#fff" style={styles.emptyIcon} />
-            <Text style={styles.emptyStateText}>No clients found</Text>
-            <Text style={styles.emptyStateSubtext}>
-              Try adjusting your search
-            </Text>
+            <Text style={styles.emptyStateText}>{t.noClientsFound}</Text>
+            <Text style={styles.emptyStateSubtext}>{t.tryAdjustingSearch}</Text>
           </View>
         ) : (
           filteredAndSortedClients.map((c) => {
@@ -167,21 +173,25 @@ export function ClientsScreen({ onDetail }: ClientsScreenProps) {
                 sub={c.email}
                 onClick={() => onDetail(c.id)}
                 rightTop={
-                  <Text style={styles.spentText}>{fmt(c.totalPurchases)}</Text>
+                  <Text style={styles.spentText}>
+                    {formatCurrency(c.totalPurchases, currency)}
+                  </Text>
                 }
                 rightBottom={
                   <View style={styles.orderInfo}>
-                    <Text style={styles.orderCount}>{orders} orders</Text>
+                    <Text style={styles.orderCount}>
+                      {orders} {t.orders}
+                    </Text>
                     <View style={styles.orderBadge}>
                       <Text style={styles.orderBadgeText}>
-                        {paidOrders} paid
+                        {paidOrders} {t.paid}
                       </Text>
                     </View>
                   </View>
                 }
                 badge={
                   c.totalPurchases > 10000
-                    ? { text: "VIP", color: "#e8b84b" }
+                    ? { text: t.vip, color: "#e8b84b" }
                     : undefined
                 }
               />
@@ -190,12 +200,11 @@ export function ClientsScreen({ onDetail }: ClientsScreenProps) {
         )}
       </View>
 
-      {/* Top Client Highlight */}
       {stats.topClient && filteredAndSortedClients.length > 0 && (
         <View style={styles.topClientCard}>
           <Text style={styles.topClientIcon}>🏆</Text>
           <View style={styles.topClientInfo}>
-            <Text style={styles.topClientLabel}>Top Spender</Text>
+            <Text style={styles.topClientLabel}>{t.topSpender}</Text>
             <Text style={styles.topClientName}>{stats.topClient}</Text>
           </View>
         </View>
@@ -247,6 +256,8 @@ const styles = StyleSheet.create({
     color: "#666",
     marginBottom: 6,
     textAlign: "center",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   statValue: {
     fontSize: 15,

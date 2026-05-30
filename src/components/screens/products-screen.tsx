@@ -9,7 +9,8 @@ import {
   View,
 } from "react-native";
 import { useDB } from "../../hooks/use-database";
-import { fmt } from "../../utils/helpers";
+import { useTranslation } from "../../hooks/use-translation";
+import { formatCurrency } from "../../utils/helpers";
 import { StockBar } from "../common/stock-bar";
 
 interface ProductsScreenProps {
@@ -17,9 +18,29 @@ interface ProductsScreenProps {
 }
 
 export function ProductsScreen({ onDetail }: ProductsScreenProps) {
-  const { db } = useDB();
+  const { db, preferences } = useDB();
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+
+  const currency = preferences?.currency || "BRL";
+
+  const getTranslatedCategory = (category: string): string => {
+    const categoryMap: Record<string, string> = {
+      Electronics: t.categoryElectronics,
+      Clothing: t.categoryClothing,
+      Food: t.categoryFood,
+      Home: t.categoryHome,
+      Beauty: t.categoryBeauty,
+      Sports: t.categorySports,
+      Toys: t.categoryToys,
+      Books: t.categoryBooks,
+      Health: t.categoryHealth,
+      Automotive: t.categoryAutomotive,
+      Others: t.categoryOthers,
+    };
+    return categoryMap[category] || category;
+  };
 
   const categories = useMemo(() => {
     if (!db) return [];
@@ -34,6 +55,9 @@ export function ProductsScreen({ onDetail }: ProductsScreenProps) {
       (p) =>
         !searchQuery ||
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        getTranslatedCategory(p.category)
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
         p.category.toLowerCase().includes(searchQuery.toLowerCase()),
     );
 
@@ -46,12 +70,12 @@ export function ProductsScreen({ onDetail }: ProductsScreenProps) {
 
   const getStockBadge = (stock: number) => {
     if (stock === 0)
-      return { bg: "#3a1a1a", text: "#f87171", label: "Out of Stock" };
+      return { bg: "#3a1a1a", text: "#f87171", label: t.outOfStock };
     if (stock < 10)
-      return { bg: "#3a1a1a", text: "#f87171", label: "Critical" };
+      return { bg: "#3a1a1a", text: "#f87171", label: t.critical };
     if (stock < 30)
-      return { bg: "#3a2e1a", text: "#fbbf24", label: "Low Stock" };
-    return { bg: "#1a3a2a", text: "#6ee7b7", label: "In Stock" };
+      return { bg: "#3a2e1a", text: "#fbbf24", label: t.lowStockStatus };
+    return { bg: "#1a3a2a", text: "#6ee7b7", label: t.goodStock };
   };
 
   if (!db) return null;
@@ -67,24 +91,26 @@ export function ProductsScreen({ onDetail }: ProductsScreenProps) {
     >
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>Products</Text>
-          <Text style={styles.subtitle}>{db.products.length} items</Text>
+          <Text style={styles.title}>{t.products}</Text>
+          <Text style={styles.subtitle}>
+            {db.products.length} {t.items}
+          </Text>
         </View>
       </View>
 
       <View style={styles.statsContainer}>
         <View style={styles.statCard}>
-          <Text style={styles.statLabel}>Total Products</Text>
+          <Text style={styles.statLabel}>{t.totalProducts}</Text>
           <Text style={styles.statValue}>{db.products.length}</Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={styles.statLabel}>Total Stock</Text>
+          <Text style={styles.statLabel}>{t.totalStock}</Text>
           <Text style={styles.statValue}>{totalStock}</Text>
         </View>
         <View
           style={[styles.statCard, lowStockCount > 0 && styles.statCardWarning]}
         >
-          <Text style={styles.statLabel}>Low Stock</Text>
+          <Text style={styles.statLabel}>{t.lowStock}</Text>
           <Text
             style={[
               styles.statValue,
@@ -100,7 +126,7 @@ export function ProductsScreen({ onDetail }: ProductsScreenProps) {
         <Search size={20} color="#666" style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search products by name or category..."
+          placeholder={t.searchProducts}
           placeholderTextColor="#666"
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -133,7 +159,7 @@ export function ProductsScreen({ onDetail }: ProductsScreenProps) {
                 categoryFilter === cat && styles.filterTextActive,
               ]}
             >
-              {cat === "all" ? "All" : cat}
+              {cat === "all" ? t.allCategories : getTranslatedCategory(cat)}
             </Text>
           </TouchableOpacity>
         ))}
@@ -143,10 +169,8 @@ export function ProductsScreen({ onDetail }: ProductsScreenProps) {
         {filteredProducts.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyIcon}>📦</Text>
-            <Text style={styles.emptyStateText}>No products found</Text>
-            <Text style={styles.emptyStateSubtext}>
-              Try adjusting your search or filters
-            </Text>
+            <Text style={styles.emptyStateText}>{t.noProductsFound}</Text>
+            <Text style={styles.emptyStateSubtext}>{t.tryAdjustingSearch}</Text>
           </View>
         ) : (
           filteredProducts.map((p) => {
@@ -172,11 +196,15 @@ export function ProductsScreen({ onDetail }: ProductsScreenProps) {
                   <Text style={styles.productName} numberOfLines={1}>
                     {p.name}
                   </Text>
-                  <Text style={styles.productCategory}>{p.category}</Text>
+                  <Text style={styles.productCategory}>
+                    {getTranslatedCategory(p.category)}
+                  </Text>
                   <StockBar stock={p.stock} />
                 </View>
                 <View style={styles.productStats}>
-                  <Text style={styles.productPrice}>{fmt(p.price)}</Text>
+                  <Text style={styles.productPrice}>
+                    {formatCurrency(p.price, currency)}
+                  </Text>
                   <View
                     style={[styles.stockBadge, { backgroundColor: badge.bg }]}
                   >
@@ -184,7 +212,9 @@ export function ProductsScreen({ onDetail }: ProductsScreenProps) {
                       {badge.label}
                     </Text>
                   </View>
-                  <Text style={styles.stockCount}>{p.stock} units</Text>
+                  <Text style={styles.stockCount}>
+                    {p.stock} {t.units}
+                  </Text>
                 </View>
               </TouchableOpacity>
             );
@@ -242,6 +272,8 @@ const styles = StyleSheet.create({
     color: "#666",
     marginBottom: 6,
     textAlign: "center",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   statValue: {
     fontSize: 20,

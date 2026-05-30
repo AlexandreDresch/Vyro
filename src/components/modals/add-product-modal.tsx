@@ -1,15 +1,16 @@
 import React, { useState } from "react";
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { CATEGORIES, COLORS } from "../../constants";
 import { useDB } from "../../hooks/use-database";
-import { uid } from "../../utils/helpers";
+import { useTranslation } from "../../hooks/use-translation";
+import { formatCurrency, uid } from "../../utils/helpers";
 import { ButtonRow } from "../common/button-row";
 import { Field } from "../common/field";
 import { Modal } from "../common/modal";
@@ -20,20 +21,39 @@ interface AddProductModalProps {
 }
 
 export function AddProductModal({ onClose, onSave }: AddProductModalProps) {
-  const { addProduct } = useDB();
+  const { addProduct, preferences } = useDB();
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [price, setPrice] = useState("");
   const [stock, setStock] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const currency = preferences?.currency || "BRL";
+
+  const getTranslatedCategory = (cat: string): string => {
+    const categoryMap: Record<string, string> = {
+      Electronics: t.categoryElectronics,
+      Clothing: t.categoryClothing,
+      Food: t.categoryFood,
+      Home: t.categoryHome,
+      Beauty: t.categoryBeauty,
+      Sports: t.categorySports,
+      Toys: t.categoryToys,
+      Books: t.categoryBooks,
+      Health: t.categoryHealth,
+      Automotive: t.categoryAutomotive,
+      Others: t.categoryOthers,
+    };
+    return categoryMap[cat] || cat;
+  };
+
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!name.trim()) newErrors.name = "Product name is required";
+    if (!name.trim()) newErrors.name = t.productNameRequired;
     if (!price || parseFloat(price) <= 0)
-      newErrors.price = "Valid price is required";
-    if (!stock || parseInt(stock) < 0)
-      newErrors.stock = "Valid stock quantity is required";
+      newErrors.price = t.validPriceRequired;
+    if (!stock || parseInt(stock) < 0) newErrors.stock = t.validStockRequired;
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -59,20 +79,23 @@ export function AddProductModal({ onClose, onSave }: AddProductModalProps) {
     onClose();
   };
 
+  const priceValue = parseFloat(price);
+  const isValidPrice = !isNaN(priceValue) && priceValue > 0;
+
   return (
-    <Modal title="New Product" onClose={onClose}>
+    <Modal title={t.newProduct} onClose={onClose}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <Field label="Product Name" required error={errors.name}>
+        <Field label={t.productName} required error={errors.name}>
           <TextInput
             style={styles.input}
-            placeholder="Enter product name"
+            placeholder={t.enterProductName}
             placeholderTextColor="#666"
             value={name}
             onChangeText={setName}
           />
         </Field>
 
-        <Field label="Category" required>
+        <Field label={t.category} required>
           <View style={styles.categoryContainer}>
             {CATEGORIES.map((cat) => (
               <TouchableOpacity
@@ -89,14 +112,14 @@ export function AddProductModal({ onClose, onSave }: AddProductModalProps) {
                     category === cat && styles.categoryTextSelected,
                   ]}
                 >
-                  {cat}
+                  {getTranslatedCategory(cat)}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
         </Field>
 
-        <Field label="Price (R$)" required error={errors.price}>
+        <Field label={t.price} required error={errors.price}>
           <TextInput
             style={styles.input}
             keyboardType="numeric"
@@ -107,7 +130,7 @@ export function AddProductModal({ onClose, onSave }: AddProductModalProps) {
           />
         </Field>
 
-        <Field label="Stock Quantity" required error={errors.stock}>
+        <Field label={t.stockQuantity} required error={errors.stock}>
           <TextInput
             style={styles.input}
             keyboardType="numeric"
@@ -119,16 +142,20 @@ export function AddProductModal({ onClose, onSave }: AddProductModalProps) {
         </Field>
 
         <View style={styles.previewContainer}>
-          <Text style={styles.previewLabel}>Preview</Text>
+          <Text style={styles.previewLabel}>{t.preview}</Text>
           <View style={styles.previewCard}>
             <View
               style={[styles.previewColor, { backgroundColor: COLORS[0] }]}
             />
             <View style={styles.previewInfo}>
-              <Text style={styles.previewName}>{name || "Product Name"}</Text>
-              <Text style={styles.previewCategory}>{category}</Text>
+              <Text style={styles.previewName}>{name || t.productName}</Text>
+              <Text style={styles.previewCategory}>
+                {getTranslatedCategory(category)}
+              </Text>
               <Text style={styles.previewPrice}>
-                {price ? `R$ ${parseFloat(price).toFixed(2)}` : "R$ 0.00"}
+                {isValidPrice
+                  ? formatCurrency(priceValue, currency)
+                  : formatCurrency(0, currency)}
               </Text>
             </View>
           </View>
@@ -137,7 +164,7 @@ export function AddProductModal({ onClose, onSave }: AddProductModalProps) {
         <ButtonRow
           onCancel={onClose}
           onConfirm={handleSave}
-          confirmLabel="Add Product"
+          confirmLabel={t.addProduct}
         />
       </ScrollView>
     </Modal>

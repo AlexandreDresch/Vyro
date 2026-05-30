@@ -2,8 +2,9 @@ import { Pencil } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useDB } from "../../hooks/use-database";
+import { useTranslation } from "../../hooks/use-translation";
 import { Product } from "../../types";
-import { fmt } from "../../utils/helpers";
+import { formatCurrency } from "../../utils/helpers";
 import { ButtonRow } from "../common/button-row";
 import { Modal } from "../common/modal";
 import { StockBar } from "../common/stock-bar";
@@ -20,7 +21,11 @@ export function ProductDetailModal({
   onClose,
   onDelete,
 }: ProductDetailModalProps) {
-  const { db, deleteProduct, updateProduct } = useDB();
+  const { db, deleteProduct, updateProduct, preferences } = useDB();
+  const { t } = useTranslation();
+  const [isEditing, setIsEditing] = useState(false);
+
+  const currency = preferences?.currency || "BRL";
 
   const stats = useMemo(() => {
     const paid =
@@ -32,7 +37,6 @@ export function ProductDetailModal({
       db?.sales.filter((s) => s.productId === product.id).length || 0;
     return { revenue, totalOrders, paidOrders: paid.length };
   }, [db, product.id]);
-  const [isEditing, setIsEditing] = useState(false);
 
   const handleDelete = () => {
     if (onDelete) {
@@ -44,16 +48,33 @@ export function ProductDetailModal({
   };
 
   const getStockLevel = () => {
-    if (product.stock === 0) return "Out of Stock";
-    if (product.stock < 10) return "Critical Stock";
-    if (product.stock < 30) return "Low Stock";
-    return "Good Stock";
+    if (product.stock === 0) return t.outOfStock;
+    if (product.stock < 10) return t.criticalStock;
+    if (product.stock < 30) return t.lowStockStatus;
+    return t.goodStock;
   };
 
   const getStockColor = () => {
     if (product.stock < 10) return "#e05252";
     if (product.stock < 30) return "#e8b84b";
     return "#4caf79";
+  };
+
+  const getTranslatedCategory = (category: string): string => {
+    const categoryMap: Record<string, string> = {
+      Electronics: t.categoryElectronics,
+      Clothing: t.categoryClothing,
+      Food: t.categoryFood,
+      Home: t.categoryHome,
+      Beauty: t.categoryBeauty,
+      Sports: t.categorySports,
+      Toys: t.categoryToys,
+      Books: t.categoryBooks,
+      Health: t.categoryHealth,
+      Automotive: t.categoryAutomotive,
+      Others: t.categoryOthers,
+    };
+    return categoryMap[category] || category;
   };
 
   return (
@@ -67,18 +88,22 @@ export function ProductDetailModal({
                 { backgroundColor: product.color },
               ]}
             />
-            <Text style={styles.category}>{product.category}</Text>
+            <Text style={styles.category}>
+              {getTranslatedCategory(product.category)}
+            </Text>
           </View>
 
           <View style={styles.statsGrid}>
             <View style={styles.statCard}>
-              <Text style={styles.statLabel}>Price</Text>
-              <Text style={styles.statValue}>{fmt(product.price)}</Text>
+              <Text style={styles.statLabel}>{t.price}</Text>
+              <Text style={styles.statValue}>
+                {formatCurrency(product.price, currency)}
+              </Text>
             </View>
             <View style={styles.statCard}>
-              <Text style={styles.statLabel}>Stock</Text>
+              <Text style={styles.statLabel}>{t.stock}</Text>
               <Text style={[styles.statValue, { color: getStockColor() }]}>
-                {product.stock} units
+                {product.stock} {t.units}
               </Text>
             </View>
           </View>
@@ -91,36 +116,32 @@ export function ProductDetailModal({
           <View style={styles.divider} />
 
           <View style={styles.revenueSection}>
-            <Text style={styles.sectionTitle}>Sales Performance</Text>
+            <Text style={styles.sectionTitle}>{t.salesPerformance}</Text>
             <View style={styles.revenueStats}>
               <View style={styles.revenueItem}>
-                <Text style={styles.revenueLabel}>Total Revenue</Text>
-                <Text style={styles.revenueValue}>{fmt(stats.revenue)}</Text>
+                <Text style={styles.revenueLabel}>{t.totalRevenue}</Text>
+                <Text style={styles.revenueValue}>
+                  {formatCurrency(stats.revenue, currency)}
+                </Text>
               </View>
               <View style={styles.revenueItem}>
-                <Text style={styles.revenueLabel}>Paid Orders</Text>
+                <Text style={styles.revenueLabel}>{t.paidOrders}</Text>
                 <Text style={styles.revenueValue}>{stats.paidOrders}</Text>
               </View>
               <View style={styles.revenueItem}>
-                <Text style={styles.revenueLabel}>Total Orders</Text>
+                <Text style={styles.revenueLabel}>{t.totalOrders}</Text>
                 <Text style={styles.revenueValue}>{stats.totalOrders}</Text>
               </View>
             </View>
           </View>
-
-          <ButtonRow
-            onCancel={handleDelete}
-            onConfirm={onClose}
-            confirmLabel="Close"
-            cancelLabel="Delete Product"
-          />
 
           <TouchableOpacity
             onPress={() => setIsEditing(true)}
             style={styles.editButton}
           >
             <Text style={styles.editButtonText}>
-              Edit Product{"  "}
+              {t.editProduct}
+              {"  "}
               <Pencil
                 size={14}
                 color={"#e8b84b"}
@@ -128,6 +149,13 @@ export function ProductDetailModal({
               />
             </Text>
           </TouchableOpacity>
+
+          <ButtonRow
+            onCancel={handleDelete}
+            onConfirm={onClose}
+            confirmLabel={t.close}
+            cancelLabel={t.deleteProduct}
+          />
         </>
       ) : (
         <EditProductModal
@@ -180,6 +208,8 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: "#666",
     marginBottom: 4,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   statValue: {
     fontSize: 18,

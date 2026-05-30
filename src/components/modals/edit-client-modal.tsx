@@ -1,21 +1,24 @@
+import { isValidNumber, parsePhoneNumberWithError } from "libphonenumber-js";
 import React, { useEffect, useState } from "react";
 import {
-    Alert,
-    Linking,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Linking,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { COLORS } from "../../constants";
 import { useDB } from "../../hooks/use-database";
+import { useTranslation } from "../../hooks/use-translation";
 import { Client } from "../../types";
-import { fmt } from "../../utils/helpers";
+import { formatCurrency, formatDate } from "../../utils/helpers";
 import { ButtonRow } from "../common/button-row";
 import { Field } from "../common/field";
 import { Modal } from "../common/modal";
+import { PhoneInput } from "../common/phone-input";
 
 interface EditClientModalProps {
   client: Client;
@@ -28,12 +31,15 @@ export function EditClientModal({
   onClose,
   onSave,
 }: EditClientModalProps) {
-  const { db, updateClient } = useDB();
+  const { db, updateClient, preferences } = useDB();
+  const { t, language } = useTranslation();
   const [name, setName] = useState(client.name);
   const [email, setEmail] = useState(client.email);
   const [phone, setPhone] = useState(client.phone);
   const [color, setColor] = useState(client.color);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const currency = preferences?.currency || "BRL";
 
   useEffect(() => {
     setName(client.name);
@@ -44,9 +50,12 @@ export function EditClientModal({
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!name.trim()) newErrors.name = "Client name is required";
+    if (!name.trim()) newErrors.name = t.clientNameRequired;
     if (email && !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-      newErrors.email = "Invalid email format";
+      newErrors.email = t.invalidEmailFormat;
+    }
+    if (phone && !isValidNumber(phone)) {
+      newErrors.phone = t.invalidPhoneNumber;
     }
 
     setErrors(newErrors);
@@ -60,7 +69,7 @@ export function EditClientModal({
       ...client,
       name: name.trim(),
       email: email.trim(),
-      phone: phone.trim(),
+      phone: phone,
       color,
     };
 
@@ -69,12 +78,14 @@ export function EditClientModal({
 
     if (salesCount > 0 && client.name !== name.trim()) {
       Alert.alert(
-        "Warning",
-        `This client has ${salesCount} sale(s). Changing their name will affect historical data. Continue?`,
+        t.warning,
+        t.clientHasExistingSales.replace("{count}", String(salesCount)) +
+          "\n\n" +
+          t.changingNameAffectsHistoricalData,
         [
-          { text: "Cancel", style: "cancel" },
+          { text: t.cancel, style: "cancel" },
           {
-            text: "Continue",
+            text: t.continue,
             onPress: () => {
               if (onSave) {
                 onSave(updatedClient);
@@ -96,20 +107,6 @@ export function EditClientModal({
     }
   };
 
-  const formatPhoneNumber = (text: string) => {
-    let cleaned = text.replace(/\D/g, "");
-    if (cleaned.length <= 2) return cleaned;
-    if (cleaned.length <= 6)
-      return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2)}`;
-    if (cleaned.length <= 10)
-      return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 6)}-${cleaned.slice(6)}`;
-    return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 7)}-${cleaned.slice(7, 11)}`;
-  };
-
-  const handlePhoneChange = (text: string) => {
-    setPhone(formatPhoneNumber(text));
-  };
-
   const getRandomColor = () => {
     const newColor = COLORS[Math.floor(Math.random() * COLORS.length)];
     setColor(newColor);
@@ -123,7 +120,14 @@ export function EditClientModal({
 
   const handlePhonePress = () => {
     if (phone) {
-      Linking.openURL(`tel:${phone.replace(/\D/g, "")}`);
+      try {
+        const phoneNumber = parsePhoneNumberWithError(phone);
+        const dialNumber = phoneNumber.number.toString();
+        Linking.openURL(`tel:${dialNumber}`);
+      } catch {
+        const dialNumber = phone.replace(/\D/g, "");
+        Linking.openURL(`tel:${dialNumber}`);
+      }
     }
   };
 
@@ -146,24 +150,24 @@ export function EditClientModal({
     : null;
 
   return (
-    <Modal title="Edit Client" onClose={onClose}>
+    <Modal title={t.editClient} onClose={onClose}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <Field label="Full Name" required error={errors.name}>
+        <Field label={t.fullName} required error={errors.name}>
           <TextInput
             style={styles.input}
-            placeholder="Enter client name"
+            placeholder={t.enterClientName}
             placeholderTextColor="#666"
             value={name}
             onChangeText={setName}
           />
         </Field>
 
-        <Field label="Email" error={errors.email}>
+        <Field label={t.email} error={errors.email}>
           <View style={styles.emailContainer}>
             <TextInput
               style={[styles.input, styles.emailInput]}
               keyboardType="email-address"
-              placeholder="email@example.com"
+              placeholder={t.emailExample}
               placeholderTextColor="#666"
               value={email}
               onChangeText={setEmail}
@@ -180,15 +184,13 @@ export function EditClientModal({
           </View>
         </Field>
 
-        <Field label="Phone Number">
+        <Field label={t.phone} error={errors.phone}>
           <View style={styles.phoneContainer}>
-            <TextInput
-              style={[styles.input, styles.phoneInput]}
-              keyboardType="phone-pad"
-              placeholder="+55 11 91234-5678"
-              placeholderTextColor="#666"
+            <PhoneInput
               value={phone}
-              onChangeText={handlePhoneChange}
+              onChangeText={setPhone}
+              placeholder={t.enterPhoneNumber}
+              style={styles.phoneInputField}
             />
             {phone !== "" && (
               <TouchableOpacity
@@ -201,7 +203,7 @@ export function EditClientModal({
           </View>
         </Field>
 
-        <Field label="Client Color">
+        <Field label={t.clientColor}>
           <View style={styles.colorContainer}>
             <TouchableOpacity
               style={[styles.colorPreview, { backgroundColor: color }]}
@@ -210,13 +212,13 @@ export function EditClientModal({
               onPress={getRandomColor}
               style={styles.randomColorButton}
             >
-              <Text style={styles.randomColorText}>🎨 Random Color</Text>
+              <Text style={styles.randomColorText}>{t.randomColor}</Text>
             </TouchableOpacity>
           </View>
         </Field>
 
         <View style={styles.previewContainer}>
-          <Text style={styles.previewLabel}>Preview</Text>
+          <Text style={styles.previewLabel}>{t.preview}</Text>
           <View style={styles.previewCard}>
             <View style={[styles.previewAvatar, { backgroundColor: color }]}>
               <Text style={styles.previewInitials}>
@@ -229,44 +231,44 @@ export function EditClientModal({
               </Text>
             </View>
             <View style={styles.previewInfo}>
-              <Text style={styles.previewName}>{name || "Client Name"}</Text>
-              <Text style={styles.previewEmail}>{email || "No email"}</Text>
-              <Text style={styles.previewPhone}>{phone || "No phone"}</Text>
+              <Text style={styles.previewName}>{name || t.clientName}</Text>
+              <Text style={styles.previewEmail}>{email || t.noEmail}</Text>
+              <Text style={styles.previewPhone}>{phone || t.noPhone}</Text>
             </View>
           </View>
         </View>
 
         {clientStats && (
           <View style={styles.statsContainer}>
-            <Text style={styles.statsLabel}>Client Statistics</Text>
+            <Text style={styles.statsLabel}>{t.clientStatistics}</Text>
             <View style={styles.statsCard}>
               <View style={styles.statRow}>
-                <Text style={styles.statLabel}>Total Orders</Text>
+                <Text style={styles.statLabel}>{t.totalOrders}</Text>
                 <Text style={styles.statValue}>{clientStats.totalOrders}</Text>
               </View>
               <View style={styles.statRow}>
-                <Text style={styles.statLabel}>Total Spent</Text>
+                <Text style={styles.statLabel}>{t.totalSpent}</Text>
                 <Text style={[styles.statValue, styles.statValueAccent]}>
-                  {fmt(clientStats.totalSpent)}
+                  {formatCurrency(clientStats.totalSpent, currency)}
                 </Text>
               </View>
               <View style={styles.statRow}>
-                <Text style={styles.statLabel}>Paid Orders</Text>
+                <Text style={styles.statLabel}>{t.paidOrders}</Text>
                 <Text style={[styles.statValue, { color: "#6ee7b7" }]}>
                   {clientStats.paidOrders}
                 </Text>
               </View>
               <View style={styles.statRow}>
-                <Text style={styles.statLabel}>Pending Orders</Text>
+                <Text style={styles.statLabel}>{t.pendingOrders}</Text>
                 <Text style={[styles.statValue, { color: "#fbbf24" }]}>
                   {clientStats.pendingOrders}
                 </Text>
               </View>
               {clientStats.lastOrderDate && (
                 <View style={styles.statRow}>
-                  <Text style={styles.statLabel}>Last Order</Text>
+                  <Text style={styles.statLabel}>{t.lastOrder}</Text>
                   <Text style={styles.statValue}>
-                    {clientStats.lastOrderDate}
+                    {formatDate(clientStats.lastOrderDate, language)}
                   </Text>
                 </View>
               )}
@@ -277,8 +279,8 @@ export function EditClientModal({
         <ButtonRow
           onCancel={onClose}
           onConfirm={handleSave}
-          confirmLabel="Save Changes"
-          cancelLabel="Cancel"
+          confirmLabel={t.saveChanges}
+          cancelLabel={t.cancel}
         />
       </ScrollView>
     </Modal>
@@ -306,8 +308,9 @@ const styles = StyleSheet.create({
   phoneContainer: {
     flexDirection: "row",
     gap: 8,
+    alignItems: "center",
   },
-  phoneInput: {
+  phoneInputField: {
     flex: 1,
   },
   actionButton: {
