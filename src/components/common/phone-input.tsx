@@ -17,7 +17,6 @@ export function PhoneInput({
 }: PhoneInputProps) {
   const [formattedValue, setFormattedValue] = useState(value);
 
-  // Update formatted value when external value changes
   useEffect(() => {
     if (value !== formattedValue) {
       const asYouType = new AsYouType();
