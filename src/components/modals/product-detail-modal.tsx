@@ -1,6 +1,6 @@
 import { Pencil } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useDB } from "../../hooks/use-database";
 import { useTranslation } from "../../hooks/use-translation";
 import { Product } from "../../types";
@@ -21,11 +21,18 @@ export function ProductDetailModal({
   onClose,
   onDelete,
 }: ProductDetailModalProps) {
-  const { db, deleteProduct, updateProduct, preferences } = useDB();
+  const {
+    db,
+    deleteProduct,
+    updateProduct,
+    preferences,
+    getProductSalesCount,
+  } = useDB();
   const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
 
   const currency = preferences?.currency || "BRL";
+  const salesCount = getProductSalesCount(product.id);
 
   const stats = useMemo(() => {
     const paid =
@@ -39,12 +46,36 @@ export function ProductDetailModal({
   }, [db, product.id]);
 
   const handleDelete = () => {
-    if (onDelete) {
-      onDelete();
-    } else {
-      deleteProduct(product.id);
-      onClose();
+    if (salesCount > 0) {
+      Alert.alert(
+        t.cannotDeleteProduct || "Cannot Delete Product",
+        t.cannotDeleteProductMessage?.replace("{count}", String(salesCount)) ||
+          `This product has ${salesCount} sale(s). Please delete the associated sales first.`,
+        [{ text: "OK" }],
+      );
+      return;
     }
+
+    Alert.alert(
+      t.deleteConfirmation || "Confirm Delete",
+      t.deleteProductWarning ||
+        "Are you sure you want to delete this product? This action cannot be undone.",
+      [
+        { text: t.cancel, style: "cancel" },
+        {
+          text: t.delete,
+          style: "destructive",
+          onPress: () => {
+            if (onDelete) {
+              onDelete();
+            } else {
+              deleteProduct(product.id);
+              onClose();
+            }
+          },
+        },
+      ],
+    );
   };
 
   const getStockLevel = () => {

@@ -288,6 +288,30 @@ export interface Translations {
   // Phone number specific
   invalidPhoneNumber: string;
   enterPhoneNumber: string;
+
+  // Add Client Modal specific
+  clientInfoMessage: string;
+
+  // Delete confirmation messages
+  deleteClientWarning: string;
+  deleteClientWarningWithSales: string;
+  deleteSaleWarning: string;
+  deleteProductWarning: string;
+  deleteProductWarningWithSales: string;
+
+  // Delete alerts
+  cannotDeleteClient: string;
+  cannotDeleteClientMessage: string;
+  cannotDeleteProduct: string;
+  cannotDeleteProductMessage: string;
+
+  // Stock behavior setup
+  stockBehavior: string;
+  stockBehaviorDescription: string;
+  stockBehaviorLabel: string;
+
+  // Stock reservation for pending sales
+  reserveStock: string;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -328,7 +352,7 @@ export const translations: Record<Language, Translations> = {
     ofOrders: "dos pedidos",
     awaiting: "aguardando",
     allClear: "Tudo certo",
-    units: "unidades",
+    units: "un.",
 
     // Sales
     transactions: "transações",
@@ -590,6 +614,39 @@ export const translations: Record<Language, Translations> = {
     // Phone number specific
     invalidPhoneNumber: "Número de telefone inválido",
     enterPhoneNumber: "Digite o número de telefone",
+
+    // Add Client Modal specific
+    clientInfoMessage:
+      "O total de compras do cliente será atualizado automaticamente quando as vendas forem adicionadas.",
+
+    // Delete confirmation messages
+    deleteClientWarning:
+      "Tem certeza que deseja excluir este cliente? Esta ação não pode ser desfeita.",
+    deleteClientWarningWithSales:
+      "Este cliente possui {count} venda(s). A exclusão também removerá todas as vendas associadas. Esta ação não pode ser desfeita.",
+    deleteSaleWarning:
+      "Tem certeza que deseja excluir esta venda? Esta ação não pode ser desfeita.",
+    deleteProductWarning:
+      "Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.",
+    deleteProductWarningWithSales:
+      "Este produto possui {count} venda(s). A exclusão também removerá todas as vendas associadas. Esta ação não pode ser desfeita.",
+
+    // Delete alerts
+    cannotDeleteClient: "Não é possível excluir cliente",
+    cannotDeleteClientMessage:
+      "Este cliente possui {count} venda(s). Exclua as vendas associadas primeiro.",
+    cannotDeleteProduct: "Não é possível excluir produto",
+    cannotDeleteProductMessage:
+      "Este produto possui {count} venda(s). Exclua as vendas associadas primeiro.",
+
+    // Stock behavior setup
+    stockBehavior: "Comportamento do Estoque",
+    stockBehaviorDescription:
+      "Como os pedidos 'pagar depois' devem afetar seu estoque?",
+    stockBehaviorLabel: "Comportamento do Estoque",
+
+    // Stock reservation for pending sales
+    reserveStock: "Reservar Estoque",
   },
 
   en: {
@@ -629,7 +686,7 @@ export const translations: Record<Language, Translations> = {
     ofOrders: "of orders",
     awaiting: "awaiting",
     allClear: "All clear",
-    units: "units",
+    units: "un.",
 
     // Sales
     transactions: "transactions",
@@ -885,6 +942,39 @@ export const translations: Record<Language, Translations> = {
     // Phone number specific
     invalidPhoneNumber: "Invalid phone number",
     enterPhoneNumber: "Enter phone number",
+
+    // Add Client Modal specific
+    clientInfoMessage:
+      "The client's total purchases will update automatically when sales are added.",
+
+    // Delete confirmation messages
+    deleteClientWarning:
+      "Are you sure you want to delete this client? This action cannot be undone.",
+    deleteClientWarningWithSales:
+      "This client has {count} sale(s). Deleting will also remove all associated sales. This action cannot be undone.",
+    deleteSaleWarning:
+      "Are you sure you want to delete this sale? This action cannot be undone.",
+    deleteProductWarning:
+      "Are you sure you want to delete this product? This action cannot be undone.",
+    deleteProductWarningWithSales:
+      "This product has {count} sale(s). Deleting will also remove all associated sales. This action cannot be undone.",
+
+    // Delete alerts
+    cannotDeleteClient: "Cannot Delete Client",
+    cannotDeleteClientMessage:
+      "This client has {count} sale(s). Please delete the associated sales first.",
+    cannotDeleteProduct: "Cannot Delete Product",
+    cannotDeleteProductMessage:
+      "This product has {count} sale(s). Please delete the associated sales first.",
+
+    // Stock behavior setup
+    stockBehavior: "Stock Behavior",
+    stockBehaviorDescription:
+      "How should 'pay later' orders affect your inventory?",
+    stockBehaviorLabel: "Stock Behavior",
+
+    // Stock reservation for pending sales
+    reserveStock: "Reserve Stock",
   },
 
   "es-AR": {
@@ -924,7 +1014,7 @@ export const translations: Record<Language, Translations> = {
     ofOrders: "de pedidos",
     awaiting: "pendientes",
     allClear: "Todo bien",
-    units: "unidades",
+    units: "un.",
 
     // Sales
     transactions: "transacciones",
@@ -1185,5 +1275,38 @@ export const translations: Record<Language, Translations> = {
     // Phone number specific
     invalidPhoneNumber: "Número de teléfono inválido",
     enterPhoneNumber: "Ingrese el número de teléfono",
+
+    // Add Client Modal specific
+    clientInfoMessage:
+      "El total de compras del cliente se actualizará automáticamente cuando se agreguen ventas.",
+
+    // Delete confirmation messages
+    deleteClientWarning:
+      "¿Estás seguro de que deseas eliminar este cliente? Esta acción no se puede deshacer.",
+    deleteClientWarningWithSales:
+      "Este cliente tiene {count} venta(s). Eliminarlo también eliminará todas las ventas asociadas. Esta acción no se puede deshacer.",
+    deleteSaleWarning:
+      "¿Estás seguro de que deseas eliminar esta venta? Esta acción no se puede deshacer.",
+    deleteProductWarning:
+      "¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer.",
+    deleteProductWarningWithSales:
+      "Este producto tiene {count} venta(s). Eliminarlo también eliminará todas las ventas asociadas. Esta acción no se puede deshacer.",
+
+    // Delete alerts
+    cannotDeleteClient: "No se puede eliminar el cliente",
+    cannotDeleteClientMessage:
+      "Este cliente tiene {count} venta(s). Elimine las ventas asociadas primero.",
+    cannotDeleteProduct: "No se puede eliminar el producto",
+    cannotDeleteProductMessage:
+      "Este producto tiene {count} venta(s). Elimine las ventas asociadas primero.",
+
+    // Stock behavior setup
+    stockBehavior: "Comportamiento del Stock",
+    stockBehaviorDescription:
+      "¿Cómo deben afectar los pedidos 'pagar después' a su inventario?",
+    stockBehaviorLabel: "Comportamiento del Stock",
+
+    // Stock reservation for pending sales
+    reserveStock: "Reservar Stock",
   },
 };

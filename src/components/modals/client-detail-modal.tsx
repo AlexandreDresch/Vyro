@@ -1,6 +1,7 @@
 import { Pencil } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import {
+  Alert,
   Linking,
   StyleSheet,
   Text,
@@ -26,11 +27,13 @@ export function ClientDetailModal({
   onClose,
   onDelete,
 }: ClientDetailModalProps) {
-  const { db, deleteClient, updateClient, preferences } = useDB();
+  const { db, deleteClient, updateClient, preferences, getClientSalesCount } =
+    useDB();
   const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
 
   const currency = preferences?.currency || "BRL";
+  const salesCount = getClientSalesCount(client.id);
 
   const stats = useMemo(() => {
     const sales = db?.sales.filter((s) => s.clientId === client.id) || [];
@@ -49,12 +52,36 @@ export function ClientDetailModal({
   }, [db, client.id]);
 
   const handleDelete = () => {
-    if (onDelete) {
-      onDelete();
-    } else {
-      deleteClient(client.id);
-      onClose();
+    if (salesCount > 0) {
+      Alert.alert(
+        t.cannotDeleteClient || "Cannot Delete Client",
+        t.cannotDeleteClientMessage?.replace("{count}", String(salesCount)) ||
+          `This client has ${salesCount} sale(s). Please delete the associated sales first.`,
+        [{ text: "OK" }],
+      );
+      return;
     }
+
+    Alert.alert(
+      t.deleteConfirmation || "Confirm Delete",
+      t.deleteClientWarning ||
+        "Are you sure you want to delete this client? This action cannot be undone.",
+      [
+        { text: t.cancel, style: "cancel" },
+        {
+          text: t.delete,
+          style: "destructive",
+          onPress: () => {
+            if (onDelete) {
+              onDelete();
+            } else {
+              deleteClient(client.id);
+              onClose();
+            }
+          },
+        },
+      ],
+    );
   };
 
   const handleEmail = () => {

@@ -66,7 +66,7 @@ export function AddSaleModal({ onClose, onSave }: AddSaleModalProps) {
 
   const handleSave = () => {
     if (!validate()) return;
-    if (!db) return;
+    if (!db || !preferences) return;
 
     const product = db.products.find((p) => p.id === productId);
     const client = db.clients.find((c) => c.id === clientId);
@@ -74,21 +74,57 @@ export function AddSaleModal({ onClose, onSave }: AddSaleModalProps) {
 
     const qty = parseInt(quantity);
 
-    if (status === "paid" && product.stock < qty) {
+    const needsStock =
+      status === "paid" ||
+      (status === "pending" && preferences.stockBehavior === "reserve");
+
+    if (needsStock && product.stock < qty) {
       Alert.alert(
-        t.insufficientStock,
-        t.onlyXUnitsAvailable.replace("{stock}", String(product.stock)) +
-          "\n\n" +
-          t.pleaseReduceQuantity,
-        [{ text: t.confirm }],
+        t.insufficientStock || "Insufficient Stock",
+        `Only ${product.stock} units available. Please reduce the quantity.`,
+        [{ text: t.confirm || "OK" }],
       );
       return;
     }
 
-    const dateString = date.toISOString().slice(0, 10);
+    if (status === "pending" && preferences.stockBehavior === "reserve") {
+      Alert.alert(
+        t.reserveStock || "Reserve Stock",
+        `This will reserve ${qty} unit(s) from stock. The customer can pay later.`,
+        [
+          { text: t.cancel, style: "cancel" },
+          {
+            text: t.confirm,
+            onPress: () => {
+              const newSale = {
+                id: uid(),
+                date: date.toString(),
+                product: product.name,
+                productId,
+                client: client.name,
+                clientId,
+                quantity: qty,
+                price: product.price,
+                total: qty * product.price,
+                status,
+              };
+
+              if (onSave) {
+                onSave(newSale);
+              } else {
+                addSale(newSale);
+              }
+              onClose();
+            },
+          },
+        ],
+      );
+      return;
+    }
+
     const newSale = {
       id: uid(),
-      date: dateString,
+      date: date.toString(),
       product: product.name,
       productId,
       client: client.name,

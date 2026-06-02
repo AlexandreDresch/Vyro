@@ -1,6 +1,6 @@
 import { Pencil } from "lucide-react-native";
 import React, { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useDB } from "../../hooks/use-database";
 import { useTranslation } from "../../hooks/use-translation";
 import { Sale, Status } from "../../types";
@@ -27,12 +27,26 @@ export function SaleDetailModal({
   const currency = preferences?.currency || "BRL";
 
   const handleDelete = () => {
-    if (onDelete) {
-      onDelete();
-    } else {
-      deleteSale(sale.id);
-      onClose();
-    }
+    Alert.alert(
+      t.deleteConfirmation || "Confirm Delete",
+      t.deleteSaleWarning ||
+        "Are you sure you want to delete this sale? This action cannot be undone.",
+      [
+        { text: t.cancel, style: "cancel" },
+        {
+          text: t.delete,
+          style: "destructive",
+          onPress: () => {
+            if (onDelete) {
+              onDelete();
+            } else {
+              deleteSale(sale.id);
+              onClose();
+            }
+          },
+        },
+      ],
+    );
   };
 
   const getStatusText = (statusKey: string) => {

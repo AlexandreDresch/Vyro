@@ -21,6 +21,7 @@ export interface UserPreferences {
   currency: Currency;
   useMockData: boolean;
   isFirstLaunch: boolean;
+  stockBehavior: "reserve" | "no_reserve";
 }
 
 const LANGUAGE_OPTIONS = [
@@ -35,10 +36,29 @@ const CURRENCY_OPTIONS = [
   { code: "ARS", symbol: "$", name: "Peso Argentino", flag: "🇦🇷" },
 ];
 
+const STOCK_BEHAVIOR_OPTIONS = [
+  {
+    id: "reserve",
+    icon: "🔒",
+    title: "Reserve Stock",
+    description:
+      "Pending orders reduce stock (reserve inventory for pay-later customers)",
+  },
+  {
+    id: "no_reserve",
+    icon: "🔓",
+    title: "Don't Reserve Stock",
+    description: "Pending orders don't affect stock (manual stock management)",
+  },
+];
+
 export function SetupScreen({ onComplete }: SetupScreenProps) {
   const [selectedLanguage, setSelectedLanguage] = useState<Language>("en");
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>("USD");
   const [useMockData, setUseMockData] = useState(true);
+  const [stockBehavior, setStockBehavior] = useState<"reserve" | "no_reserve">(
+    "reserve",
+  );
   const [currentStep, setCurrentStep] = useState(1);
   const [fadeAnim] = useState(new Animated.Value(1));
 
@@ -60,7 +80,7 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
   };
 
   const handleNext = () => {
-    if (currentStep < 3) {
+    if (currentStep < 4) {
       animateTransition(currentStep + 1);
     }
   };
@@ -77,6 +97,7 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
       currency: selectedCurrency,
       useMockData,
       isFirstLaunch: false,
+      stockBehavior,
     };
 
     await AsyncStorage.setItem("userPreferences", JSON.stringify(preferences));
@@ -92,12 +113,12 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
           <View
             style={[
               styles.progressFill,
-              { width: `${(currentStep / 3) * 100}%` },
+              { width: `${(currentStep / 4) * 100}%` },
             ]}
           />
         </View>
         <Text style={styles.progressText}>
-          {t.step} {currentStep} {t.of} 3
+          {t.step} {currentStep} {t.of} 4
         </Text>
       </View>
 
@@ -114,6 +135,7 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
             <Text style={styles.subtitle}>{t.setupDashboard}</Text>
           </View>
 
+          {/* Step 1: Language */}
           {currentStep === 1 && (
             <View style={styles.stepContainer}>
               <Text style={styles.stepTitle}>{t.chooseLanguage}</Text>
@@ -142,6 +164,7 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
             </View>
           )}
 
+          {/* Step 2: Currency */}
           {currentStep === 2 && (
             <View style={styles.stepContainer}>
               <Text style={styles.stepTitle}>{t.chooseCurrency}</Text>
@@ -170,7 +193,43 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
             </View>
           )}
 
+          {/* Step 3: Stock Behavior */}
           {currentStep === 3 && (
+            <View style={styles.stepContainer}>
+              <Text style={styles.stepTitle}>{t.stockBehavior}</Text>
+              <Text style={styles.stepDescription}>
+                {t.stockBehaviorDescription}
+              </Text>
+              <View style={styles.optionsGrid}>
+                {STOCK_BEHAVIOR_OPTIONS.map((option) => (
+                  <TouchableOpacity
+                    key={option.id}
+                    style={[
+                      styles.optionCard,
+                      stockBehavior === option.id && styles.optionCardSelected,
+                    ]}
+                    onPress={() =>
+                      setStockBehavior(option.id as "reserve" | "no_reserve")
+                    }
+                  >
+                    <Text style={styles.behaviorIcon}>{option.icon}</Text>
+                    <Text style={styles.optionName}>{option.title}</Text>
+                    <Text style={styles.optionDescription}>
+                      {option.description}
+                    </Text>
+                    {stockBehavior === option.id && (
+                      <View style={styles.checkmark}>
+                        <Text style={styles.checkmarkText}>✓</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {/* Step 4: Data */}
+          {currentStep === 4 && (
             <View style={styles.stepContainer}>
               <Text style={styles.stepTitle}>{t.sampleData}</Text>
 
@@ -235,6 +294,16 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
                   </Text>
                 </View>
                 <View style={styles.previewItem}>
+                  <Text style={styles.previewLabel}>
+                    {t.stockBehaviorLabel}:
+                  </Text>
+                  <Text style={styles.previewValue}>
+                    {stockBehavior === "reserve"
+                      ? STOCK_BEHAVIOR_OPTIONS[0].title
+                      : STOCK_BEHAVIOR_OPTIONS[1].title}
+                  </Text>
+                </View>
+                <View style={styles.previewItem}>
                   <Text style={styles.previewLabel}>{t.data}:</Text>
                   <Text style={styles.previewValue}>
                     {useMockData ? t.sampleData : t.startFresh}
@@ -253,7 +322,7 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
           </TouchableOpacity>
         )}
 
-        {currentStep < 3 ? (
+        {currentStep < 4 ? (
           <TouchableOpacity
             onPress={handleNext}
             style={[
@@ -344,8 +413,15 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "600",
     color: "#fff",
-    marginBottom: 24,
+    marginBottom: 12,
     textAlign: "center",
+  },
+  stepDescription: {
+    fontSize: 14,
+    color: "#666",
+    textAlign: "center",
+    marginBottom: 24,
+    lineHeight: 20,
   },
   optionsGrid: {
     gap: 16,
@@ -373,15 +449,25 @@ const styles = StyleSheet.create({
     color: "#e8b84b",
     marginBottom: 8,
   },
+  behaviorIcon: {
+    fontSize: 40,
+    marginBottom: 12,
+  },
   optionName: {
     fontSize: 18,
     fontWeight: "600",
     color: "#fff",
-    marginBottom: 4,
+    marginBottom: 8,
   },
   optionLabel: {
     fontSize: 12,
     color: "#666",
+  },
+  optionDescription: {
+    fontSize: 13,
+    color: "#999",
+    textAlign: "center",
+    lineHeight: 18,
   },
   checkmark: {
     position: "absolute",

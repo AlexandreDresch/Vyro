@@ -1,13 +1,8 @@
 import React, { useState } from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View
-} from "react-native";
+import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { COLORS } from "../../constants";
 import { useDB } from "../../hooks/use-database";
+import { useTranslation } from "../../hooks/use-translation";
 import { uid } from "../../utils/helpers";
 import { ButtonRow } from "../common/button-row";
 import { Field } from "../common/field";
@@ -20,6 +15,7 @@ interface AddClientModalProps {
 
 export function AddClientModal({ onClose, onSave }: AddClientModalProps) {
   const { addClient } = useDB();
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -27,9 +23,9 @@ export function AddClientModal({ onClose, onSave }: AddClientModalProps) {
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!name.trim()) newErrors.name = "Client name is required";
+    if (!name.trim()) newErrors.name = t.clientNameRequired;
     if (email && !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-      newErrors.email = "Invalid email format";
+      newErrors.email = t.invalidEmailFormat;
     }
 
     setErrors(newErrors);
@@ -56,39 +52,28 @@ export function AddClientModal({ onClose, onSave }: AddClientModalProps) {
     onClose();
   };
 
-  const formatPhoneNumber = (text: string) => {
-    // Basic phone formatting (Brazilian format)
-    let cleaned = text.replace(/\D/g, "");
-    if (cleaned.length <= 2) return cleaned;
-    if (cleaned.length <= 6)
-      return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2)}`;
-    if (cleaned.length <= 10)
-      return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 6)}-${cleaned.slice(6)}`;
-    return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 7)}-${cleaned.slice(7, 11)}`;
-  };
-
   const handlePhoneChange = (text: string) => {
-    setPhone(formatPhoneNumber(text));
+    setPhone(text.replace(/\D/g, ""));
   };
 
   return (
-    <Modal title="New Client" onClose={onClose}>
+    <Modal title={t.newClient} onClose={onClose}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <Field label="Full Name" required error={errors.name}>
+        <Field label={t.fullName} required error={errors.name}>
           <TextInput
             style={styles.input}
-            placeholder="Enter client name"
+            placeholder={t.enterClientName}
             placeholderTextColor="#666"
             value={name}
             onChangeText={setName}
           />
         </Field>
 
-        <Field label="Email" error={errors.email}>
+        <Field label={t.email} error={errors.email}>
           <TextInput
             style={styles.input}
             keyboardType="email-address"
-            placeholder="email@example.com"
+            placeholder={t.emailExample}
             placeholderTextColor="#666"
             value={email}
             onChangeText={setEmail}
@@ -96,11 +81,11 @@ export function AddClientModal({ onClose, onSave }: AddClientModalProps) {
           />
         </Field>
 
-        <Field label="Phone Number">
+        <Field label={t.phone}>
           <TextInput
             style={styles.input}
             keyboardType="phone-pad"
-            placeholder="+55 11 91234-5678"
+            placeholder={t.phoneExample}
             placeholderTextColor="#666"
             value={phone}
             onChangeText={handlePhoneChange}
@@ -109,16 +94,13 @@ export function AddClientModal({ onClose, onSave }: AddClientModalProps) {
 
         <View style={styles.infoContainer}>
           <Text style={styles.infoIcon}>ℹ️</Text>
-          <Text style={styles.infoText}>
-            The client's total purchases will update automatically when sales
-            are added.
-          </Text>
+          <Text style={styles.infoText}>{t.clientInfoMessage}</Text>
         </View>
 
         <ButtonRow
           onCancel={onClose}
           onConfirm={handleSave}
-          confirmLabel="Add Client"
+          confirmLabel={t.addClient}
         />
       </ScrollView>
     </Modal>

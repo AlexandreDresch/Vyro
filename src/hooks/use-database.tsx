@@ -22,6 +22,8 @@ interface DBContextType {
   ) => Promise<void>;
   updateClient: (updatedClient: Client) => Promise<void>;
   checkStockAvailability: (productId: string, quantity: number) => boolean;
+  getClientSalesCount: (clientId: string) => number;
+  getProductSalesCount: (productId: string) => number;
 }
 
 interface DBProviderProps {
@@ -38,7 +40,6 @@ export function DBProvider({ children, preferences }: DBProviderProps) {
     if (!preferences) return `R$ ${amount.toFixed(2)}`;
 
     const currency = preferences.currency;
-    const language = preferences.language;
 
     switch (currency) {
       case "BRL":
@@ -71,12 +72,16 @@ export function DBProvider({ children, preferences }: DBProviderProps) {
   };
 
   const addSale = async (s: Sale) => {
-    if (!db) return;
+    if (!db || !preferences) return;
 
     const product = db.products.find((p) => p.id === s.productId);
     if (!product) return;
 
-    if (product.stock < s.quantity && s.status === "paid") {
+    const shouldReserveStock =
+      s.status === "paid" ||
+      (s.status === "pending" && preferences.stockBehavior === "reserve");
+
+    if (shouldReserveStock && product.stock < s.quantity) {
       Alert.alert(
         "Insufficient Stock",
         `Only ${product.stock} units available in stock.`,
@@ -85,9 +90,12 @@ export function DBProvider({ children, preferences }: DBProviderProps) {
       return;
     }
 
-    const updatedProducts = db.products.map((p) =>
-      p.id === s.productId ? { ...p, stock: p.stock - s.quantity } : p,
-    );
+    let updatedProducts = [...db.products];
+    if (shouldReserveStock) {
+      updatedProducts = updatedProducts.map((p) =>
+        p.id === s.productId ? { ...p, stock: p.stock - s.quantity } : p,
+      );
+    }
 
     let updatedClients = [...db.clients];
     if (s.status === "paid") {
@@ -176,6 +184,40 @@ export function DBProvider({ children, preferences }: DBProviderProps) {
       products: updatedProducts,
       clients: updatedClients,
     });
+  };
+
+  const deleteProduct = async (id: string) => {
+    if (!db) return;
+
+    const productSales = db.sales.filter((s) => s.productId === id);
+
+    if (productSales.length > 0) {
+      Alert.alert(
+        "Cannot Delete Product",
+        `This product has ${productSales.length} sale(s). Please delete the associated sales first.`,
+        [{ text: "OK" }],
+      );
+      return;
+    }
+
+    await updateDB({ ...db, products: db.products.filter((p) => p.id !== id) });
+  };
+
+  const deleteClient = async (id: string) => {
+    if (!db) return;
+
+    const clientSales = db.sales.filter((s) => s.clientId === id);
+
+    if (clientSales.length > 0) {
+      Alert.alert(
+        "Cannot Delete Client",
+        `This client has ${clientSales.length} sale(s). Please delete the associated sales first.`,
+        [{ text: "OK" }],
+      );
+      return;
+    }
+
+    await updateDB({ ...db, clients: db.clients.filter((c) => c.id !== id) });
   };
 
   const updateSale = async (updatedSale: Sale) => {
@@ -283,11 +325,6 @@ export function DBProvider({ children, preferences }: DBProviderProps) {
     });
   };
 
-  const deleteProduct = async (id: string) => {
-    if (!db) return;
-    await updateDB({ ...db, products: db.products.filter((p) => p.id !== id) });
-  };
-
   const updateProduct = async (
     updatedProduct: Product,
     preserveHistory: boolean = true,
@@ -337,11 +374,6 @@ export function DBProvider({ children, preferences }: DBProviderProps) {
     }
   };
 
-  const deleteClient = async (id: string) => {
-    if (!db) return;
-    await updateDB({ ...db, clients: db.clients.filter((c) => c.id !== id) });
-  };
-
   const checkStockAvailability = (
     productId: string,
     quantity: number,
@@ -350,6 +382,16 @@ export function DBProvider({ children, preferences }: DBProviderProps) {
     const product = db.products.find((p) => p.id === productId);
     if (!product) return false;
     return product.stock >= quantity;
+  };
+
+  const getClientSalesCount = (clientId: string): number => {
+    if (!db) return 0;
+    return db.sales.filter((s) => s.clientId === clientId).length;
+  };
+
+  const getProductSalesCount = (productId: string): number => {
+    if (!db) return 0;
+    return db.sales.filter((s) => s.productId === productId).length;
   };
 
   return (
@@ -369,6 +411,8 @@ export function DBProvider({ children, preferences }: DBProviderProps) {
         updateSale,
         updateClient,
         checkStockAvailability,
+        getClientSalesCount,
+        getProductSalesCount,
       }}
     >
       {children}

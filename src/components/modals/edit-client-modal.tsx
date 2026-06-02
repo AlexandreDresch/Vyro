@@ -1,4 +1,4 @@
-import { isValidNumber, parsePhoneNumberWithError } from "libphonenumber-js";
+import { parsePhoneNumberWithError } from "libphonenumber-js";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -53,9 +53,6 @@ export function EditClientModal({
     if (!name.trim()) newErrors.name = t.clientNameRequired;
     if (email && !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
       newErrors.email = t.invalidEmailFormat;
-    }
-    if (phone && !isValidNumber(phone)) {
-      newErrors.phone = t.invalidPhoneNumber;
     }
 
     setErrors(newErrors);
