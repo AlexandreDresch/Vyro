@@ -19,7 +19,11 @@ import { IOModal } from "../modals/IO-modal";
 import { ProductDetailModal } from "../modals/product-detail-modal";
 import { SaleDetailModal } from "../modals/sale-detail-modal";
 
-export default function AppNavigator() {
+interface AppNavigatorProps {
+  onResetComplete: () => void;
+}
+
+export default function AppNavigator({ onResetComplete }: AppNavigatorProps) {
   const { db } = useDB();
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
 
@@ -99,7 +103,12 @@ export default function AppNavigator() {
         <AddClientModal onClose={() => setAddMode(null)} />
       )}
 
-      {showIO && <IOModal onClose={() => setShowIO(false)} />}
+      {showIO && (
+        <IOModal
+          onClose={() => setShowIO(false)}
+          onResetComplete={onResetComplete}
+        />
+      )}
     </View>
   );
 }

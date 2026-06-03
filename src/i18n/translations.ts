@@ -142,6 +142,10 @@ export interface Translations {
   language: string;
   currency: string;
   data: string;
+  reserveStockTitle: string;
+  reserveStockDescription: string;
+  notReserveStockTitle: string;
+  notReserveStockDescription: string;
 
   // Edit Modals
   editSale: string;
@@ -312,6 +316,9 @@ export interface Translations {
 
   // Stock reservation for pending sales
   reserveStock: string;
+
+  // Reset data full warning
+  resetDataWarningFull: string;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -463,6 +470,12 @@ export const translations: Record<Language, Translations> = {
     language: "Idioma",
     currency: "Moeda",
     data: "Dados",
+    reserveStockTitle: "Reservar Estoque",
+    reserveStockDescription:
+      "Pedidos pendendes reduzem o estoque (reserva de estoque para clientes que escolheram 'pagar depois')",
+    notReserveStockTitle: "Não Reservar Estoque",
+    notReserveStockDescription:
+      "Pedidos pendendes não reduzem o estoque (ideal para negócios que só disponibilizam produtos mediante pagamento)",
 
     // Edit Modals
     saveChanges: "Salvar Alterações",
@@ -647,6 +660,10 @@ export const translations: Record<Language, Translations> = {
 
     // Stock reservation for pending sales
     reserveStock: "Reservar Estoque",
+
+    // Reset data full warning
+    resetDataWarningFull:
+      "Isso irá DELETAR TODOS os seus dados E preferências. O aplicativo será reiniciado como se fosse a primeira vez. Esta ação não pode ser desfeita.",
   },
 
   en: {
@@ -796,6 +813,12 @@ export const translations: Record<Language, Translations> = {
     language: "Language",
     currency: "Currency",
     data: "Data",
+    reserveStockTitle: "Reserve Stock",
+    reserveStockDescription:
+      "Pending orders reduce stock (reserve stock for customers who chose to 'pay later')",
+    notReserveStockTitle: "Don't Reserve Stock",
+    notReserveStockDescription:
+      "Pending orders do not reduce stock (ideal for businesses that only make products available upon payment)",
 
     // Edit Modals
     saveChanges: "Save Changes",
@@ -975,6 +998,10 @@ export const translations: Record<Language, Translations> = {
 
     // Stock reservation for pending sales
     reserveStock: "Reserve Stock",
+
+    // Reset data full warning
+    resetDataWarningFull:
+      "This will delete ALL your data AND preferences. The app will restart as if first launch. This action cannot be undone.",
   },
 
   "es-AR": {
@@ -1125,6 +1152,12 @@ export const translations: Record<Language, Translations> = {
     language: "Idioma",
     currency: "Moneda",
     data: "Datos",
+    reserveStockTitle: "Reservar Stock",
+    reserveStockDescription:
+      "Los pedidos pendientes reducen el stock (reserva de stock para clientes que eligieron 'pagar después')",
+    notReserveStockTitle: "No Reservar Stock",
+    notReserveStockDescription:
+      "Los pedidos pendientes no reducen el stock (ideal para negocios que solo hacen productos disponibles mediante pago)",
 
     // Edit Modals
     saveChanges: "Guardar Cambios",
@@ -1308,5 +1341,9 @@ export const translations: Record<Language, Translations> = {
 
     // Stock reservation for pending sales
     reserveStock: "Reservar Stock",
+
+    // Reset data full warning
+    resetDataWarningFull:
+      "Esto eliminará TODOS sus datos Y preferencias. La aplicación se reiniciará como si fuera el primer inicio. Esta acción no se puede deshacer.",
   },
 };

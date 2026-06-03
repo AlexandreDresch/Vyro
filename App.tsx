@@ -15,10 +15,11 @@ import { persistDB } from "./src/utils/storage";
 export default function App() {
   const [isFirstLaunch, setIsFirstLaunch] = useState<boolean | null>(null);
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
+  const [resetTrigger, setResetTrigger] = useState(0);
 
   useEffect(() => {
     checkFirstLaunch();
-  }, []);
+  }, [resetTrigger]);
 
   const checkFirstLaunch = async () => {
     try {
@@ -41,11 +42,15 @@ export default function App() {
     setIsFirstLaunch(false);
 
     if (userPrefs.useMockData) {
-      const seedData = buildSeedData();
+      const seedData = buildSeedData(userPrefs.language);
       await persistDB(seedData);
     } else {
       await persistDB({ sales: [], products: [], clients: [] });
     }
+  };
+
+  const handleResetComplete = () => {
+    setResetTrigger((prev) => prev + 1);
   };
 
   if (isFirstLaunch === null) {
@@ -76,7 +81,7 @@ export default function App() {
     <DBProvider preferences={preferences}>
       <StatusBar barStyle="light-content" backgroundColor="#0a0a0a" />
       <SafeAreaProvider style={{ flex: 1, backgroundColor: "#0a0a0a" }}>
-        <AppNavigator />
+        <AppNavigator onResetComplete={handleResetComplete} />
       </SafeAreaProvider>
     </DBProvider>
   );

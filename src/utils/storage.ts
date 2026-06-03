@@ -7,8 +7,8 @@ export async function loadDB(): Promise<DB> {
   try {
     const raw = await AsyncStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw) as DB;
-  } catch {
-    /* ignore */
+  } catch (error) {
+    console.error("Error loading DB:", error);
   }
   return buildSeedData();
 }
@@ -16,7 +16,7 @@ export async function loadDB(): Promise<DB> {
 export async function persistDB(db: DB) {
   try {
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(db));
-  } catch {
-    /* ignore */
+  } catch (error) {
+    console.error("Error persisting DB:", error);
   }
 }

@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
@@ -17,14 +18,16 @@ import { useDB } from "../../hooks/use-database";
 import { useTranslation } from "../../hooks/use-translation";
 import { DB } from "../../types";
 import { uid } from "../../utils/helpers";
+import { persistDB } from "../../utils/storage";
 import { Modal } from "../common/modal";
 
 interface IOModalProps {
   onClose: () => void;
   onImport?: (data: Partial<DB>) => void;
+  onResetComplete?: () => void;
 }
 
-export function IOModal({ onClose, onImport }: IOModalProps) {
+export function IOModal({ onClose, onImport, onResetComplete }: IOModalProps) {
   const { db, updateDB } = useDB();
   const { t } = useTranslation();
   const [isExporting, setIsExporting] = useState(false);
@@ -229,8 +232,8 @@ export function IOModal({ onClose, onImport }: IOModalProps) {
   const handleResetData = () => {
     Alert.alert(
       t.resetData || "Reset Data",
-      t.resetDataWarning ||
-        "This will delete all your data. This action cannot be undone.",
+      t.resetDataWarningFull ||
+        "This will delete ALL your data AND preferences. The app will restart as if first launch. This action cannot be undone.",
       [
         { text: t.cancel || "Cancel", style: "cancel" },
         {
@@ -244,16 +247,15 @@ export function IOModal({ onClose, onImport }: IOModalProps) {
                 products: [],
                 clients: [],
               };
+              await persistDB(emptyDB);
 
-              await updateDB(emptyDB);
-
-              Alert.alert(
-                t.dataReset || "Data Reset",
-                t.dataResetSuccess || "All data has been successfully deleted.",
-                [{ text: t.confirm || "OK" }],
-              );
+              await AsyncStorage.removeItem("userPreferences");
 
               onClose();
+
+              if (onResetComplete) {
+                onResetComplete();
+              }
             } catch (error) {
               console.error("Reset error:", error);
               Alert.alert(
@@ -319,13 +321,20 @@ export function IOModal({ onClose, onImport }: IOModalProps) {
         <TouchableOpacity
           onPress={handleResetData}
           style={[styles.button, styles.dangerButton]}
+          disabled={isResetting}
         >
-          <Text style={styles.buttonIcon}>
-            <TriangleAlert size={20} color="#e05252" />
-          </Text>
-          <Text style={[styles.buttonText, styles.dangerText]}>
-            {t.resetAllData}
-          </Text>
+          {isResetting ? (
+            <ActivityIndicator color="#e05252" />
+          ) : (
+            <>
+              <Text style={styles.buttonIcon}>
+                <TriangleAlert size={20} color="#e05252" />
+              </Text>
+              <Text style={[styles.buttonText, styles.dangerText]}>
+                {t.resetAllData}
+              </Text>
+            </>
+          )}
         </TouchableOpacity>
         <Text style={styles.buttonNote}>{t.resetDataWarningShort}</Text>
       </View>

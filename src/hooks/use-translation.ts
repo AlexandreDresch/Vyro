@@ -3,8 +3,16 @@ import { Language } from "../types";
 import { useDB } from "./use-database";
 
 export function useTranslation(overrideLanguage?: Language) {
-  const { preferences } = useDB();
-  const language = overrideLanguage || preferences?.language || "en";
+  let preferences = null;
+  let language: Language = "en";
+
+  try {
+    const dbContext = useDB();
+    preferences = dbContext?.preferences;
+    language = preferences?.language || overrideLanguage || "en";
+  } catch (error) {
+    language = overrideLanguage || "en";
+  }
 
   const t = translations[language];
 

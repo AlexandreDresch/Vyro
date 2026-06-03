@@ -128,14 +128,10 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
           contentContainerStyle={styles.scrollContent}
         >
           <View style={styles.header}>
-            <View style={styles.logoContainer}>
-              <Text style={styles.logo}>📊</Text>
-            </View>
             <Text style={styles.title}>{t.welcome}</Text>
             <Text style={styles.subtitle}>{t.setupDashboard}</Text>
           </View>
 
-          {/* Step 1: Language */}
           {currentStep === 1 && (
             <View style={styles.stepContainer}>
               <Text style={styles.stepTitle}>{t.chooseLanguage}</Text>
@@ -179,7 +175,6 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
                     ]}
                     onPress={() => setSelectedCurrency(curr.code as Currency)}
                   >
-                    <Text style={styles.optionFlag}>{curr.flag}</Text>
                     <Text style={styles.currencySymbol}>{curr.symbol}</Text>
                     <Text style={styles.optionName}>{curr.name}</Text>
                     {selectedCurrency === curr.code && (
@@ -193,7 +188,6 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
             </View>
           )}
 
-          {/* Step 3: Stock Behavior */}
           {currentStep === 3 && (
             <View style={styles.stepContainer}>
               <Text style={styles.stepTitle}>{t.stockBehavior}</Text>
@@ -201,34 +195,49 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
                 {t.stockBehaviorDescription}
               </Text>
               <View style={styles.optionsGrid}>
-                {STOCK_BEHAVIOR_OPTIONS.map((option) => (
-                  <TouchableOpacity
-                    key={option.id}
-                    style={[
-                      styles.optionCard,
-                      stockBehavior === option.id && styles.optionCardSelected,
-                    ]}
-                    onPress={() =>
-                      setStockBehavior(option.id as "reserve" | "no_reserve")
-                    }
-                  >
-                    <Text style={styles.behaviorIcon}>{option.icon}</Text>
-                    <Text style={styles.optionName}>{option.title}</Text>
-                    <Text style={styles.optionDescription}>
-                      {option.description}
-                    </Text>
-                    {stockBehavior === option.id && (
-                      <View style={styles.checkmark}>
-                        <Text style={styles.checkmarkText}>✓</Text>
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                ))}
+                <TouchableOpacity
+                  style={[
+                    styles.optionCard,
+                    stockBehavior === "reserve" && styles.optionCardSelected,
+                  ]}
+                  onPress={() => setStockBehavior("reserve")}
+                >
+                  <Text style={styles.behaviorIcon}>🔒</Text>
+                  <Text style={styles.optionName}>{t.reserveStockTitle}</Text>
+                  <Text style={styles.optionDescription}>
+                    {t.reserveStockDescription}
+                  </Text>
+                  {stockBehavior === "reserve" && (
+                    <View style={styles.checkmark}>
+                      <Text style={styles.checkmarkText}>✓</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.optionCard,
+                    stockBehavior === "no_reserve" && styles.optionCardSelected,
+                  ]}
+                  onPress={() => setStockBehavior("no_reserve")}
+                >
+                  <Text style={styles.behaviorIcon}>🔓</Text>
+                  <Text style={styles.optionName}>
+                    {t.notReserveStockTitle}
+                  </Text>
+                  <Text style={styles.optionDescription}>
+                    {t.notReserveStockDescription}
+                  </Text>
+                  {stockBehavior === "no_reserve" && (
+                    <View style={styles.checkmark}>
+                      <Text style={styles.checkmarkText}>✓</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
               </View>
             </View>
           )}
 
-          {/* Step 4: Data */}
           {currentStep === 4 && (
             <View style={styles.stepContainer}>
               <Text style={styles.stepTitle}>{t.sampleData}</Text>
@@ -382,20 +391,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 40,
   },
-  logoContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "#1a1a1a",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
-  },
-  logo: {
-    fontSize: 40,
-  },
   title: {
     fontSize: 28,
     fontWeight: "700",
@@ -431,7 +426,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "rgba(255,255,255,0.05)",
     borderRadius: 16,
-    padding: 20,
+    padding: 5,
     alignItems: "center",
     position: "relative",
   },
