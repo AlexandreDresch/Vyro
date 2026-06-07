@@ -1,3 +1,4 @@
+import { formatLargeCurrency } from "@/src/utils/helpers";
 import { Pencil } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import {
@@ -11,7 +12,6 @@ import {
 import { useDB } from "../../hooks/use-database";
 import { useTranslation } from "../../hooks/use-translation";
 import { Client } from "../../types";
-import { formatCurrency } from "../../utils/helpers";
 import { ButtonRow } from "../common/button-row";
 import { Modal } from "../common/modal";
 import { EditClientModal } from "./edit-client-modal";
@@ -122,13 +122,13 @@ export function ClientDetailModal({
             <View style={styles.statBox}>
               <Text style={styles.statBoxLabel}>{t.totalSpent}</Text>
               <Text style={styles.statBoxValue}>
-                {formatCurrency(stats.totalSpent, currency)}
+                {formatLargeCurrency(stats.totalSpent, currency)}
               </Text>
             </View>
             <View style={styles.statBox}>
               <Text style={styles.statBoxLabel}>{t.averageOrder}</Text>
               <Text style={styles.statBoxValue}>
-                {formatCurrency(stats.averageOrder, currency)}
+                {formatLargeCurrency(stats.averageOrder, currency)}
               </Text>
             </View>
           </View>

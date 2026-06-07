@@ -186,6 +186,93 @@ const CLIENT_DEFS = [
   },
 ];
 
+const getDateMonthsAgo = (monthsAgo: number): Date => {
+  const date = new Date();
+  date.setMonth(date.getMonth() - monthsAgo);
+  return date;
+};
+
+const formatDate = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const generateSalesData = (products: Product[], clients: Client[]): Sale[] => {
+  const sales: Sale[] = [];
+  const months = [5, 4, 3, 2, 1, 0];
+
+  const salesPerMonth = [12, 15, 18, 22, 25, 30];
+
+  months.forEach((monthsAgo, index) => {
+    const saleDate = getDateMonthsAgo(monthsAgo);
+    const monthStr = formatDate(saleDate);
+    const numSales = salesPerMonth[index];
+
+    for (let i = 0; i < numSales; i++) {
+      let productIndex;
+      if (monthsAgo <= 2) {
+        const trendingProducts = [0, 1, 2, 4];
+        productIndex =
+          trendingProducts[Math.floor(Math.random() * trendingProducts.length)];
+      } else {
+        productIndex = Math.floor(Math.random() * products.length);
+      }
+
+      const prod = products[productIndex];
+      const client = clients[Math.floor(Math.random() * clients.length)];
+
+      let qty: number;
+      if (monthsAgo <= 1) {
+        qty = Math.floor(2 + Math.random() * 4);
+      } else if (monthsAgo <= 3) {
+        qty = Math.floor(1 + Math.random() * 3);
+      } else {
+        qty = Math.floor(1 + Math.random() * 2);
+      }
+
+      const total = qty * prod.price;
+
+      let status: Status;
+      const random = Math.random();
+      if (monthsAgo <= 1) {
+        if (random < 0.85) status = "paid";
+        else if (random < 0.95) status = "pending";
+        else status = "cancelled";
+      } else if (monthsAgo <= 3) {
+        if (random < 0.75) status = "paid";
+        else if (random < 0.9) status = "pending";
+        else status = "cancelled";
+      } else {
+        if (random < 0.65) status = "paid";
+        else if (random < 0.85) status = "pending";
+        else status = "cancelled";
+      }
+
+      sales.push({
+        id: uid(),
+        date: monthStr,
+        product: prod.name,
+        productId: prod.id,
+        client: client.name,
+        clientId: client.id,
+        quantity: qty,
+        price: prod.price,
+        total,
+        status,
+      });
+    }
+  });
+
+  for (let i = sales.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [sales[i], sales[j]] = [sales[j], sales[i]];
+  }
+
+  return sales;
+};
+
 export function buildSeedData(language: Language = "en"): DB {
   const clients: Client[] = CLIENT_DEFS.map((clientDef, i) => ({
     id: uid(),
@@ -208,35 +295,20 @@ export function buildSeedData(language: Language = "en"): DB {
         language === "es-AR" ? "esAR" : language
       ],
     price: productDef.price,
-    stock: Math.floor(5 + Math.random() * 95),
+    stock: Math.floor(15 + Math.random() * 85),
     color: COLORS[i % COLORS.length],
   }));
 
-  const sales: Sale[] = [];
-  for (let i = 0; i < 28; i++) {
-    const prod = products[Math.floor(Math.random() * products.length)];
-    const client = clients[Math.floor(Math.random() * clients.length)];
-    const qty = Math.floor(1 + Math.random() * 4);
-    const month = String(Math.floor(1 + Math.random() * 6)).padStart(2, "0");
-    const day = String(Math.floor(1 + Math.random() * 28)).padStart(2, "0");
-    const status = (
-      ["paid", "paid", "paid", "pending", "cancelled"] as Status[]
-    )[Math.floor(Math.random() * 5)];
-    const total = qty * prod.price;
-    sales.push({
-      id: uid(),
-      date: `2025-${month}-${day}`,
-      product: prod.name,
-      productId: prod.id,
-      client: client.name,
-      clientId: client.id,
-      quantity: qty,
-      price: prod.price,
-      total,
-      status,
-    });
-    if (status === "paid") client.totalPurchases += total;
-  }
+  const sales = generateSalesData(products, clients);
+
+  sales.forEach((sale) => {
+    if (sale.status === "paid") {
+      const client = clients.find((c) => c.id === sale.clientId);
+      if (client) {
+        client.totalPurchases += sale.total;
+      }
+    }
+  });
 
   return { sales, products, clients };
 }

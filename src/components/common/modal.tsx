@@ -56,11 +56,12 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   modalContent: {
+    flex: 1,
     backgroundColor: "#111",
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     padding: 20,
-    minHeight: 300,
+    maxHeight: "90%",
   },
   modalHeader: {
     flexDirection: "row",

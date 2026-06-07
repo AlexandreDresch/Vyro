@@ -13,7 +13,7 @@ import {
 import { useDB } from "../../hooks/use-database";
 import { useTranslation } from "../../hooks/use-translation";
 import { Sale, Status } from "../../types";
-import { formatCurrency, formatDate } from "../../utils/helpers";
+import { formatDate, formatLargeCurrency } from "../../utils/helpers";
 import { ButtonRow } from "../common/button-row";
 import { Field } from "../common/field";
 import { Modal } from "../common/modal";
@@ -110,7 +110,7 @@ export function EditSaleModal({ sale, onClose, onSave }: EditSaleModalProps) {
     if (Math.abs(newTotal - oldTotal) > 0) {
       Alert.alert(
         t.confirmChanges,
-        `${t.totalWillChange} ${formatCurrency(oldTotal, currency)} ${t.to} ${formatCurrency(newTotal, currency)}. ${t.continueQuestion}`,
+        `${t.totalWillChange} ${formatLargeCurrency(oldTotal, currency)} ${t.to} ${formatLargeCurrency(newTotal, currency)}. ${t.continueQuestion}`,
         [
           { text: t.cancel, style: "cancel" },
           {
@@ -166,7 +166,7 @@ export function EditSaleModal({ sale, onClose, onSave }: EditSaleModalProps) {
                   {p.name}
                 </Text>
                 <Text style={styles.pickerOptionPrice}>
-                  {formatCurrency(p.price, currency)}
+                  {formatLargeCurrency(p.price, currency)}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -261,7 +261,7 @@ export function EditSaleModal({ sale, onClose, onSave }: EditSaleModalProps) {
               <View style={styles.previewRow}>
                 <Text style={styles.previewRowLabel}>{t.subtotal}:</Text>
                 <Text style={styles.previewRowValue}>
-                  {formatCurrency(subtotal, currency)}
+                  {formatLargeCurrency(subtotal, currency)}
                 </Text>
               </View>
               <View style={styles.previewDivider} />

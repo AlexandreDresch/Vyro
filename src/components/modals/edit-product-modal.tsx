@@ -1,6 +1,8 @@
+import { formatLargeCurrency } from "@/src/utils/helpers";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
+  Dimensions,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,10 +14,11 @@ import { CATEGORIES, COLORS } from "../../constants";
 import { useDB } from "../../hooks/use-database";
 import { useTranslation } from "../../hooks/use-translation";
 import { Product } from "../../types";
-import { formatCurrency } from "../../utils/helpers";
 import { ButtonRow } from "../common/button-row";
 import { Field } from "../common/field";
 import { Modal } from "../common/modal";
+
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 interface EditProductModalProps {
   product: Product;
@@ -140,160 +143,180 @@ export function EditProductModal({
 
   return (
     <Modal title={t.editProduct} onClose={onClose}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {salesCount > 0 && (
-          <View style={styles.warningBanner}>
-            <Text style={styles.warningIcon}>⚠️</Text>
-            <Text style={styles.warningText}>
-              {t.productHasHistoricalSales.replace(
-                "{count}",
-                String(salesCount),
-              )}{" "}
-              {t.changesAffectFutureOnly}
-            </Text>
-          </View>
-        )}
-
-        <Field label={t.productName} required error={errors.name}>
-          <TextInput
-            style={styles.input}
-            placeholder={t.enterProductName}
-            placeholderTextColor="#666"
-            value={name}
-            onChangeText={setName}
-          />
-          {salesCount > 0 && product.name !== name && (
-            <Text style={styles.hintText}>
-              {t.currentNameInSales
-                .replace("{count}", String(salesCount))
-                .replace("{name}", product.name)}
-            </Text>
+      <View style={styles.modalContent}>
+        <ScrollView
+          showsVerticalScrollIndicator={true}
+          contentContainerStyle={styles.scrollViewContent}
+          style={styles.scrollView}
+        >
+          {salesCount > 0 && (
+            <View style={styles.warningBanner}>
+              <Text style={styles.warningIcon}>⚠️</Text>
+              <Text style={styles.warningText}>
+                {t.productHasHistoricalSales.replace(
+                  "{count}",
+                  String(salesCount),
+                )}{" "}
+                {t.changesAffectFutureOnly}
+              </Text>
+            </View>
           )}
-        </Field>
 
-        <Field label={t.category} required>
-          <View style={styles.categoryContainer}>
-            {CATEGORIES.map((cat) => (
-              <TouchableOpacity
-                key={cat}
-                style={[
-                  styles.categoryOption,
-                  category === cat && styles.categoryOptionSelected,
-                ]}
-                onPress={() => setCategory(cat)}
-              >
-                <Text
-                  style={[
-                    styles.categoryText,
-                    category === cat && styles.categoryTextSelected,
-                  ]}
-                >
-                  {getTranslatedCategory(cat)}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </Field>
-
-        <Field label={t.price} required error={errors.price}>
-          <TextInput
-            style={styles.input}
-            keyboardType="numeric"
-            placeholder="0.00"
-            placeholderTextColor="#666"
-            value={price}
-            onChangeText={setPrice}
-          />
-          {salesCount > 0 && product.price !== parseFloat(price) && (
-            <Text style={styles.hintText}>
-              {t.historicalPrice
-                .replace("{price}", formatCurrency(product.price, currency))
-                .replace("{count}", String(salesCount))}
-            </Text>
-          )}
-        </Field>
-
-        <Field label={t.stockQuantity} required error={errors.stock}>
-          <TextInput
-            style={styles.input}
-            keyboardType="numeric"
-            placeholder="0"
-            placeholderTextColor="#666"
-            value={stock}
-            onChangeText={setStock}
-          />
-        </Field>
-
-        <Field label={t.productColor}>
-          <View style={styles.colorContainer}>
-            <TouchableOpacity
-              style={[styles.colorPreview, { backgroundColor: color }]}
+          <Field label={t.productName} required error={errors.name}>
+            <TextInput
+              style={styles.input}
+              placeholder={t.enterProductName}
+              placeholderTextColor="#666"
+              value={name}
+              onChangeText={setName}
             />
-            <TouchableOpacity
-              onPress={getRandomColor}
-              style={styles.randomColorButton}
-            >
-              <Text style={styles.randomColorText}>{t.randomColor}</Text>
-            </TouchableOpacity>
-          </View>
-        </Field>
+            {salesCount > 0 && product.name !== name && (
+              <Text style={styles.hintText}>
+                {t.currentNameInSales
+                  .replace("{count}", String(salesCount))
+                  .replace("{name}", product.name)}
+              </Text>
+            )}
+          </Field>
 
-        <View style={styles.previewContainer}>
-          <Text style={styles.previewLabel}>{t.previewFutureSales}</Text>
-          <View style={styles.previewCard}>
-            <View style={[styles.previewColor, { backgroundColor: color }]} />
-            <View style={styles.previewInfo}>
-              <Text style={styles.previewName}>{name || t.productName}</Text>
-              <Text style={styles.previewCategory}>
-                {getTranslatedCategory(category)}
+          <Field label={t.category} required>
+            <View style={styles.categoryContainer}>
+              {CATEGORIES.map((cat) => (
+                <TouchableOpacity
+                  key={cat}
+                  style={[
+                    styles.categoryOption,
+                    category === cat && styles.categoryOptionSelected,
+                  ]}
+                  onPress={() => setCategory(cat)}
+                >
+                  <Text
+                    style={[
+                      styles.categoryText,
+                      category === cat && styles.categoryTextSelected,
+                    ]}
+                  >
+                    {getTranslatedCategory(cat)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </Field>
+
+          <Field label={t.price} required error={errors.price}>
+            <TextInput
+              style={styles.input}
+              keyboardType="numeric"
+              placeholder="0.00"
+              placeholderTextColor="#666"
+              value={price}
+              onChangeText={setPrice}
+            />
+            {salesCount > 0 && product.price !== parseFloat(price) && (
+              <Text style={styles.hintText}>
+                {t.historicalPrice
+                  .replace(
+                    "{price}",
+                    formatLargeCurrency(product.price, currency),
+                  )
+                  .replace("{count}", String(salesCount))}
               </Text>
-              <Text style={styles.previewPrice}>
-                {price
-                  ? formatCurrency(parseFloat(price), currency)
-                  : formatCurrency(0, currency)}
-              </Text>
-              <View style={styles.previewStock}>
-                <Text style={styles.previewStockLabel}>{t.stock}:</Text>
-                <Text style={styles.previewStockValue}>
-                  {stock || 0} {t.units}
+            )}
+          </Field>
+
+          <Field label={t.stockQuantity} required error={errors.stock}>
+            <TextInput
+              style={styles.input}
+              keyboardType="numeric"
+              placeholder="0"
+              placeholderTextColor="#666"
+              value={stock}
+              onChangeText={setStock}
+            />
+          </Field>
+
+          <Field label={t.productColor}>
+            <View style={styles.colorContainer}>
+              <TouchableOpacity
+                style={[styles.colorPreview, { backgroundColor: color }]}
+              />
+              <TouchableOpacity
+                onPress={getRandomColor}
+                style={styles.randomColorButton}
+              >
+                <Text style={styles.randomColorText}>{t.randomColor}</Text>
+              </TouchableOpacity>
+            </View>
+          </Field>
+
+          <View style={styles.previewContainer}>
+            <Text style={styles.previewLabel}>{t.previewFutureSales}</Text>
+            <View style={styles.previewCard}>
+              <View style={[styles.previewColor, { backgroundColor: color }]} />
+              <View style={styles.previewInfo}>
+                <Text style={styles.previewName}>{name || t.productName}</Text>
+                <Text style={styles.previewCategory}>
+                  {getTranslatedCategory(category)}
                 </Text>
+                <Text style={styles.previewPrice}>
+                  {price
+                    ? formatLargeCurrency(parseFloat(price), currency)
+                    : formatLargeCurrency(0, currency)}
+                </Text>
+                <View style={styles.previewStock}>
+                  <Text style={styles.previewStockLabel}>{t.stock}:</Text>
+                  <Text style={styles.previewStockValue}>
+                    {stock || 0} {t.units}
+                  </Text>
+                </View>
               </View>
             </View>
           </View>
-        </View>
 
-        {salesCount > 0 && (
-          <View style={styles.statsContainer}>
-            <Text style={styles.statsLabel}>{t.historicalSalesData}</Text>
-            <View style={styles.statsCard}>
-              <View style={styles.statRow}>
-                <Text style={styles.statLabel}>{t.totalSales}</Text>
-                <Text style={styles.statValue}>{salesCount}</Text>
+          {salesCount > 0 && (
+            <View style={styles.statsContainer}>
+              <Text style={styles.statsLabel}>{t.historicalSalesData}</Text>
+              <View style={styles.statsCard}>
+                <View style={styles.statRow}>
+                  <Text style={styles.statLabel}>{t.totalSales}</Text>
+                  <Text style={styles.statValue}>{salesCount}</Text>
+                </View>
+                <View style={styles.statRow}>
+                  <Text style={styles.statLabel}>{t.historicalRevenue}</Text>
+                  <Text style={[styles.statValue, styles.statValueAccent]}>
+                    {formatLargeCurrency(historicalRevenue, currency)}
+                  </Text>
+                </View>
+                <View style={styles.statDivider} />
+                <Text style={styles.statNote}>{t.historicalDataNote}</Text>
               </View>
-              <View style={styles.statRow}>
-                <Text style={styles.statLabel}>{t.historicalRevenue}</Text>
-                <Text style={[styles.statValue, styles.statValueAccent]}>
-                  {formatCurrency(historicalRevenue, currency)}
-                </Text>
-              </View>
-              <View style={styles.statDivider} />
-              <Text style={styles.statNote}>{t.historicalDataNote}</Text>
             </View>
-          </View>
-        )}
+          )}
 
-        <ButtonRow
-          onCancel={onClose}
-          onConfirm={handleSave}
-          confirmLabel={t.saveChanges}
-          cancelLabel={t.cancel}
-        />
-      </ScrollView>
+          <View style={styles.buttonContainer}>
+            <ButtonRow
+              onCancel={onClose}
+              onConfirm={handleSave}
+              confirmLabel={t.saveChanges}
+              cancelLabel={t.cancel}
+            />
+          </View>
+        </ScrollView>
+      </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
+  modalContent: {
+    height: SCREEN_HEIGHT * 0.85,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollViewContent: {
+    paddingBottom: 20,
+  },
   input: {
     backgroundColor: "#1a1a1a",
     borderWidth: 1,
@@ -478,5 +501,9 @@ const styles = StyleSheet.create({
     color: "#666",
     fontStyle: "italic",
     lineHeight: 14,
+  },
+  buttonContainer: {
+    marginTop: 8,
+    marginBottom: 16,
   },
 });

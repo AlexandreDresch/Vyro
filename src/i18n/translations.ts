@@ -1072,7 +1072,7 @@ export const translations: Record<Language, Translations> = {
     revenue: "Ingresos",
     paidOrders: "Pedidos Pagados",
     totalStock: "Stock Total",
-    lowStock: "Stock Bajo",
+    lowStock: "Stock  Bajo",
     outOfStock: "Sin Stock",
     critical: "Crítico",
     lowStockStatus: "Stock Bajo",

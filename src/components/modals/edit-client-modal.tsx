@@ -2,6 +2,7 @@ import { parsePhoneNumberWithError } from "libphonenumber-js";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
+  Dimensions,
   Linking,
   ScrollView,
   StyleSheet,
@@ -14,11 +15,13 @@ import { COLORS } from "../../constants";
 import { useDB } from "../../hooks/use-database";
 import { useTranslation } from "../../hooks/use-translation";
 import { Client } from "../../types";
-import { formatCurrency, formatDate } from "../../utils/helpers";
+import { formatDate, formatLargeCurrency } from "../../utils/helpers";
 import { ButtonRow } from "../common/button-row";
 import { Field } from "../common/field";
 import { Modal } from "../common/modal";
 import { PhoneInput } from "../common/phone-input";
+
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 interface EditClientModalProps {
   client: Client;
@@ -148,143 +151,162 @@ export function EditClientModal({
 
   return (
     <Modal title={t.editClient} onClose={onClose}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <Field label={t.fullName} required error={errors.name}>
-          <TextInput
-            style={styles.input}
-            placeholder={t.enterClientName}
-            placeholderTextColor="#666"
-            value={name}
-            onChangeText={setName}
-          />
-        </Field>
-
-        <Field label={t.email} error={errors.email}>
-          <View style={styles.emailContainer}>
+      <View style={styles.modalContent}>
+        <ScrollView
+          showsVerticalScrollIndicator={true}
+          contentContainerStyle={styles.scrollViewContent}
+          style={styles.scrollView}
+        >
+          <Field label={t.fullName} required error={errors.name}>
             <TextInput
-              style={[styles.input, styles.emailInput]}
-              keyboardType="email-address"
-              placeholder={t.emailExample}
+              style={styles.input}
+              placeholder={t.enterClientName}
               placeholderTextColor="#666"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
+              value={name}
+              onChangeText={setName}
             />
-            {email !== "" && (
-              <TouchableOpacity
-                onPress={handleEmailPress}
-                style={styles.actionButton}
-              >
-                <Text style={styles.actionButtonText}>📧</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </Field>
+          </Field>
 
-        <Field label={t.phone} error={errors.phone}>
-          <View style={styles.phoneContainer}>
-            <PhoneInput
-              value={phone}
-              onChangeText={setPhone}
-              placeholder={t.enterPhoneNumber}
-              style={styles.phoneInputField}
-            />
-            {phone !== "" && (
-              <TouchableOpacity
-                onPress={handlePhonePress}
-                style={styles.actionButton}
-              >
-                <Text style={styles.actionButtonText}>📱</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </Field>
-
-        <Field label={t.clientColor}>
-          <View style={styles.colorContainer}>
-            <TouchableOpacity
-              style={[styles.colorPreview, { backgroundColor: color }]}
-            />
-            <TouchableOpacity
-              onPress={getRandomColor}
-              style={styles.randomColorButton}
-            >
-              <Text style={styles.randomColorText}>{t.randomColor}</Text>
-            </TouchableOpacity>
-          </View>
-        </Field>
-
-        <View style={styles.previewContainer}>
-          <Text style={styles.previewLabel}>{t.preview}</Text>
-          <View style={styles.previewCard}>
-            <View style={[styles.previewAvatar, { backgroundColor: color }]}>
-              <Text style={styles.previewInitials}>
-                {name
-                  .split(" ")
-                  .slice(0, 2)
-                  .map((w) => w[0])
-                  .join("")
-                  .toUpperCase() || "?"}
-              </Text>
-            </View>
-            <View style={styles.previewInfo}>
-              <Text style={styles.previewName}>{name || t.clientName}</Text>
-              <Text style={styles.previewEmail}>{email || t.noEmail}</Text>
-              <Text style={styles.previewPhone}>{phone || t.noPhone}</Text>
-            </View>
-          </View>
-        </View>
-
-        {clientStats && (
-          <View style={styles.statsContainer}>
-            <Text style={styles.statsLabel}>{t.clientStatistics}</Text>
-            <View style={styles.statsCard}>
-              <View style={styles.statRow}>
-                <Text style={styles.statLabel}>{t.totalOrders}</Text>
-                <Text style={styles.statValue}>{clientStats.totalOrders}</Text>
-              </View>
-              <View style={styles.statRow}>
-                <Text style={styles.statLabel}>{t.totalSpent}</Text>
-                <Text style={[styles.statValue, styles.statValueAccent]}>
-                  {formatCurrency(clientStats.totalSpent, currency)}
-                </Text>
-              </View>
-              <View style={styles.statRow}>
-                <Text style={styles.statLabel}>{t.paidOrders}</Text>
-                <Text style={[styles.statValue, { color: "#6ee7b7" }]}>
-                  {clientStats.paidOrders}
-                </Text>
-              </View>
-              <View style={styles.statRow}>
-                <Text style={styles.statLabel}>{t.pendingOrders}</Text>
-                <Text style={[styles.statValue, { color: "#fbbf24" }]}>
-                  {clientStats.pendingOrders}
-                </Text>
-              </View>
-              {clientStats.lastOrderDate && (
-                <View style={styles.statRow}>
-                  <Text style={styles.statLabel}>{t.lastOrder}</Text>
-                  <Text style={styles.statValue}>
-                    {formatDate(clientStats.lastOrderDate, language)}
-                  </Text>
-                </View>
+          <Field label={t.email} error={errors.email}>
+            <View style={styles.emailContainer}>
+              <TextInput
+                style={[styles.input, styles.emailInput]}
+                keyboardType="email-address"
+                placeholder={t.emailExample}
+                placeholderTextColor="#666"
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+              />
+              {email !== "" && (
+                <TouchableOpacity
+                  onPress={handleEmailPress}
+                  style={styles.actionButton}
+                >
+                  <Text style={styles.actionButtonText}>📧</Text>
+                </TouchableOpacity>
               )}
             </View>
-          </View>
-        )}
+          </Field>
 
-        <ButtonRow
-          onCancel={onClose}
-          onConfirm={handleSave}
-          confirmLabel={t.saveChanges}
-          cancelLabel={t.cancel}
-        />
-      </ScrollView>
+          <Field label={t.phone} error={errors.phone}>
+            <View style={styles.phoneContainer}>
+              <PhoneInput
+                value={phone}
+                onChangeText={setPhone}
+                placeholder={t.enterPhoneNumber}
+                style={styles.phoneInputField}
+              />
+              {phone !== "" && (
+                <TouchableOpacity
+                  onPress={handlePhonePress}
+                  style={styles.actionButton}
+                >
+                  <Text style={styles.actionButtonText}>📱</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </Field>
+
+          <Field label={t.clientColor}>
+            <View style={styles.colorContainer}>
+              <TouchableOpacity
+                style={[styles.colorPreview, { backgroundColor: color }]}
+              />
+              <TouchableOpacity
+                onPress={getRandomColor}
+                style={styles.randomColorButton}
+              >
+                <Text style={styles.randomColorText}>{t.randomColor}</Text>
+              </TouchableOpacity>
+            </View>
+          </Field>
+
+          <View style={styles.previewContainer}>
+            <Text style={styles.previewLabel}>{t.preview}</Text>
+            <View style={styles.previewCard}>
+              <View style={[styles.previewAvatar, { backgroundColor: color }]}>
+                <Text style={styles.previewInitials}>
+                  {name
+                    .split(" ")
+                    .slice(0, 2)
+                    .map((w) => w[0])
+                    .join("")
+                    .toUpperCase() || "?"}
+                </Text>
+              </View>
+              <View style={styles.previewInfo}>
+                <Text style={styles.previewName}>{name || t.clientName}</Text>
+                <Text style={styles.previewEmail}>{email || t.noEmail}</Text>
+                <Text style={styles.previewPhone}>{phone || t.noPhone}</Text>
+              </View>
+            </View>
+          </View>
+
+          {clientStats && (
+            <View style={styles.statsContainer}>
+              <Text style={styles.statsLabel}>{t.clientStatistics}</Text>
+              <View style={styles.statsCard}>
+                <View style={styles.statRow}>
+                  <Text style={styles.statLabel}>{t.totalOrders}</Text>
+                  <Text style={styles.statValue}>
+                    {clientStats.totalOrders}
+                  </Text>
+                </View>
+                <View style={styles.statRow}>
+                  <Text style={styles.statLabel}>{t.totalSpent}</Text>
+                  <Text style={[styles.statValue, styles.statValueAccent]}>
+                    {formatLargeCurrency(clientStats.totalSpent, currency)}
+                  </Text>
+                </View>
+                <View style={styles.statRow}>
+                  <Text style={styles.statLabel}>{t.paidOrders}</Text>
+                  <Text style={[styles.statValue, { color: "#6ee7b7" }]}>
+                    {clientStats.paidOrders}
+                  </Text>
+                </View>
+                <View style={styles.statRow}>
+                  <Text style={styles.statLabel}>{t.pendingOrders}</Text>
+                  <Text style={[styles.statValue, { color: "#fbbf24" }]}>
+                    {clientStats.pendingOrders}
+                  </Text>
+                </View>
+                {clientStats.lastOrderDate && (
+                  <View style={styles.statRow}>
+                    <Text style={styles.statLabel}>{t.lastOrder}</Text>
+                    <Text style={styles.statValue}>
+                      {formatDate(clientStats.lastOrderDate, language)}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
+          )}
+
+          <View style={styles.buttonContainer}>
+            <ButtonRow
+              onCancel={onClose}
+              onConfirm={handleSave}
+              confirmLabel={t.saveChanges}
+              cancelLabel={t.cancel}
+            />
+          </View>
+        </ScrollView>
+      </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
+  modalContent: {
+    height: SCREEN_HEIGHT * 0.85,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollViewContent: {
+    paddingBottom: 20,
+  },
   input: {
     backgroundColor: "#1a1a1a",
     borderWidth: 1,
@@ -427,5 +449,9 @@ const styles = StyleSheet.create({
   },
   statValueAccent: {
     color: "#e8b84b",
+  },
+  buttonContainer: {
+    marginTop: 8,
+    marginBottom: 16,
   },
 });

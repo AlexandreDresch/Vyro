@@ -13,7 +13,7 @@ import {
 import { useDB } from "../../hooks/use-database";
 import { useTranslation } from "../../hooks/use-translation";
 import { Status } from "../../types";
-import { formatCurrency, formatDate, uid } from "../../utils/helpers";
+import { formatDate, formatLargeCurrency, uid } from "../../utils/helpers";
 import { ButtonRow } from "../common/button-row";
 import { Field } from "../common/field";
 import { Modal } from "../common/modal";
@@ -202,8 +202,13 @@ export function AddSaleModal({ onClose, onSave }: AddSaleModalProps) {
                   >
                     {p.name}
                   </Text>
-                  <Text style={styles.pickerOptionPrice}>
-                    {formatCurrency(p.price, currency)}
+                  <Text
+                    style={[
+                      styles.pickerOptionPrice,
+                      productId === p.id && styles.pickerOptionTextSelected,
+                    ]}
+                  >
+                    {formatLargeCurrency(p.price, currency)}
                   </Text>
                 </TouchableOpacity>
               ))
@@ -277,7 +282,7 @@ export function AddSaleModal({ onClose, onSave }: AddSaleModalProps) {
           <View style={styles.totalPreview}>
             <Text style={styles.totalPreviewLabel}>{t.totalPreview}</Text>
             <Text style={styles.totalPreviewValue}>
-              {formatCurrency(totalAmount, currency)}
+              {formatLargeCurrency(totalAmount, currency)}
             </Text>
           </View>
         )}

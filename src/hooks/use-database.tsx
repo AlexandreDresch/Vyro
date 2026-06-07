@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { Alert } from "react-native";
 import { UserPreferences } from "../components/screens/setup-screen";
 import { Client, DB, Product, Sale } from "../types";
+import { formatCurrencyFull, formatLargeCurrency } from "../utils/helpers";
 import { loadDB, persistDB } from "../utils/storage";
 
 interface DBContextType {
@@ -24,6 +25,8 @@ interface DBContextType {
   checkStockAvailability: (productId: string, quantity: number) => boolean;
   getClientSalesCount: (clientId: string) => number;
   getProductSalesCount: (productId: string) => number;
+  smartFormatCurrency: (amount: number) => string;
+  formatCurrencyFull: (amount: number) => string;
 }
 
 interface DBProviderProps {
@@ -394,6 +397,16 @@ export function DBProvider({ children, preferences }: DBProviderProps) {
     return db.sales.filter((s) => s.productId === productId).length;
   };
 
+  const smartFormatCurrency = (amount: number): string => {
+    if (!preferences) return formatLargeCurrency(amount, "BRL");
+    return formatLargeCurrency(amount, preferences.currency);
+  };
+
+  const formatCurrencyFullFn = (amount: number): string => {
+    if (!preferences) return formatCurrencyFull(amount, "BRL");
+    return formatCurrencyFull(amount, preferences.currency);
+  };
+
   return (
     <DBContext.Provider
       value={{
@@ -413,6 +426,8 @@ export function DBProvider({ children, preferences }: DBProviderProps) {
         checkStockAvailability,
         getClientSalesCount,
         getProductSalesCount,
+        smartFormatCurrency,
+        formatCurrencyFull: formatCurrencyFullFn,
       }}
     >
       {children}

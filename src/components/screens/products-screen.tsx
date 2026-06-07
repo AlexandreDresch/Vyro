@@ -1,3 +1,4 @@
+import { formatLargeCurrency } from "@/src/utils/helpers";
 import { Search } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import {
@@ -10,7 +11,6 @@ import {
 } from "react-native";
 import { useDB } from "../../hooks/use-database";
 import { useTranslation } from "../../hooks/use-translation";
-import { formatCurrency } from "../../utils/helpers";
 import { StockBar } from "../common/stock-bar";
 
 interface ProductsScreenProps {
@@ -203,7 +203,7 @@ export function ProductsScreen({ onDetail }: ProductsScreenProps) {
                 </View>
                 <View style={styles.productStats}>
                   <Text style={styles.productPrice}>
-                    {formatCurrency(p.price, currency)}
+                    {formatLargeCurrency(p.price, currency)}
                   </Text>
                   <View
                     style={[styles.stockBadge, { backgroundColor: badge.bg }]}

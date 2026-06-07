@@ -10,10 +10,10 @@ import {
 import { useDB } from "../../hooks/use-database";
 import { useTranslation } from "../../hooks/use-translation";
 import {
-  formatCurrency,
   formatDate,
+  formatLargeCurrency,
   initials,
-  statusColor,
+  statusColor
 } from "../../utils/helpers";
 import { KpiCard } from "../common/kpi-card";
 import { ListItem } from "../common/list-item";
@@ -147,24 +147,28 @@ export function DashboardScreen({ onOpenIO }: DashboardScreenProps) {
         <View style={styles.kpiGrid}>
           <KpiCard
             label={t.totalRevenue}
-            value={formatCurrency(revenue, currency)}
+            value={revenue}
             sub={`↑ 12.4% ${t.vsLastPeriod}`}
             accent
+            isCurrency={true}
           />
           <KpiCard
             label={t.totalOrders}
-            value={String(db.sales.length)}
+            value={db.sales.length}
             sub={`↑ 5 ${t.thisMonth}`}
+            isCurrency={false}
           />
           <KpiCard
             label={t.paid}
-            value={String(paid.length)}
+            value={paid.length}
             sub={`${Math.round((paid.length / Math.max(db.sales.length, 1)) * 100)}% ${t.ofOrders}`}
+            isCurrency={false}
           />
           <KpiCard
             label={t.pending}
-            value={String(pending)}
+            value={pending}
             sub={pending > 0 ? `${pending} ${t.awaiting}` : t.allClear}
+            isCurrency={false}
           />
         </View>
       </View>
@@ -184,7 +188,7 @@ export function DashboardScreen({ onOpenIO }: DashboardScreenProps) {
                 <Text style={styles.barLabel}>{b.label}</Text>
 
                 <Text style={styles.barValue}>
-                  {formatCurrency(b.val, currency)}
+                  {formatLargeCurrency(b.val, currency)}
                 </Text>
               </View>
             ))}
@@ -206,7 +210,7 @@ export function DashboardScreen({ onOpenIO }: DashboardScreenProps) {
                 sub={`${s.client} · ${formatDate(s.date, language)}`}
                 rightTop={
                   <Text style={styles.amberText}>
-                    {formatCurrency(s.total, currency)}
+                    {formatLargeCurrency(s.total, currency)}
                   </Text>
                 }
                 rightBottom={
@@ -262,7 +266,7 @@ export function DashboardScreen({ onOpenIO }: DashboardScreenProps) {
               </View>
               <View style={styles.productStats}>
                 <Text style={styles.productRevenue}>
-                  {formatCurrency(p.rev, currency)}
+                  {formatLargeCurrency(p.rev, currency)}
                 </Text>
                 <Text style={styles.productUnits}>
                   {p.qty} {t.units}

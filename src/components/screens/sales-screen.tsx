@@ -11,10 +11,10 @@ import {
 import { useDB } from "../../hooks/use-database";
 import { useTranslation } from "../../hooks/use-translation";
 import {
-  formatCurrency,
   formatDate,
+  formatLargeCurrency,
   initials,
-  statusColor,
+  statusColor
 } from "../../utils/helpers";
 import { ListItem } from "../common/list-item";
 
@@ -225,7 +225,7 @@ export function SalesScreen({ onDetail }: SalesScreenProps) {
                 onClick={() => onDetail(s.id)}
                 rightTop={
                   <Text style={styles.amountText}>
-                    {formatCurrency(s.total, currency)}
+                    {formatLargeCurrency(s.total, currency)}
                   </Text>
                 }
                 rightBottom={

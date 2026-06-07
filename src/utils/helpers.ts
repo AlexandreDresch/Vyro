@@ -67,3 +67,114 @@ export const statusColor: Record<Status, { bg: string; text: string }> = {
   pending: { bg: "#3a2e1a", text: "#fbbf24" },
   cancelled: { bg: "#3a1a1a", text: "#f87171" },
 };
+
+export const formatLargeNumber = (num: number, _currency?: string): string => {
+  if (num === null || num === undefined || isNaN(num)) return "0";
+
+  const absNum = Math.abs(num);
+  const sign = num < 0 ? "-" : "";
+
+  if (absNum >= 1_000_000_000) {
+    const formatted = (absNum / 1_000_000_000).toFixed(1);
+    const cleanFormatted = formatted.endsWith(".0")
+      ? formatted.slice(0, -2)
+      : formatted;
+    return `${sign}${cleanFormatted}B`;
+  } else if (absNum >= 1_000_000) {
+    const formatted = (absNum / 1_000_000).toFixed(1);
+    const cleanFormatted = formatted.endsWith(".0")
+      ? formatted.slice(0, -2)
+      : formatted;
+    return `${sign}${cleanFormatted}M`;
+  } else if (absNum >= 1_000) {
+    const formatted = (absNum / 1_000).toFixed(1);
+    const cleanFormatted = formatted.endsWith(".0")
+      ? formatted.slice(0, -2)
+      : formatted;
+    return `${sign}${cleanFormatted}K`;
+  }
+
+  return `${sign}${absNum}`;
+};
+
+export const formatLargeCurrency = (
+  amount: number,
+  currencyCode: string = "BRL",
+): string => {
+  const absAmount = Math.abs(amount);
+  const sign = amount < 0 ? "-" : "";
+
+  const getCurrencySymbol = (code: string): string => {
+    switch (code) {
+      case "BRL":
+        return "R$";
+      case "USD":
+        return "$";
+      case "ARS":
+        return "$";
+      default:
+        return "R$";
+    }
+  };
+
+  const symbol = getCurrencySymbol(currencyCode);
+
+  if (absAmount >= 1_000_000_000) {
+    const formatted = (absAmount / 1_000_000_000).toFixed(1);
+    const cleanFormatted = formatted.endsWith(".0")
+      ? formatted.slice(0, -2)
+      : formatted;
+    return `${sign}${symbol} ${cleanFormatted}B`;
+  } else if (absAmount >= 1_000_000) {
+    const formatted = (absAmount / 1_000_000).toFixed(1);
+    const cleanFormatted = formatted.endsWith(".0")
+      ? formatted.slice(0, -2)
+      : formatted;
+    return `${sign}${symbol} ${cleanFormatted}M`;
+  } else if (absAmount >= 1_000) {
+    const formatted = (absAmount / 1_000).toFixed(1);
+    const cleanFormatted = formatted.endsWith(".0")
+      ? formatted.slice(0, -2)
+      : formatted;
+    return `${sign}${symbol} ${cleanFormatted}K`;
+  }
+
+  return `${sign}${symbol} ${absAmount.toFixed(2)}`;
+};
+
+export const smartFormat = (num: number, currencyCode?: string): string => {
+  if (currencyCode) {
+    return formatLargeCurrency(num, currencyCode);
+  }
+  return formatLargeNumber(num);
+};
+
+export const formatNumberFull = (num: number): string => {
+  return num.toLocaleString("en-US");
+};
+
+export const formatCurrencyFull = (
+  amount: number,
+  currencyCode: string = "BRL",
+): string => {
+  const getCurrencySymbol = (code: string): string => {
+    switch (code) {
+      case "BRL":
+        return "R$";
+      case "USD":
+        return "$";
+      case "ARS":
+        return "$";
+      default:
+        return "R$";
+    }
+  };
+
+  const symbol = getCurrencySymbol(currencyCode);
+  const formatted = Math.abs(amount).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  return amount < 0 ? `-${symbol} ${formatted}` : `${symbol} ${formatted}`;
+};

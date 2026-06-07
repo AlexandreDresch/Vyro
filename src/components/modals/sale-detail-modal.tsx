@@ -4,7 +4,11 @@ import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useDB } from "../../hooks/use-database";
 import { useTranslation } from "../../hooks/use-translation";
 import { Sale, Status } from "../../types";
-import { formatCurrency, formatDate, statusColor } from "../../utils/helpers";
+import {
+  formatDate,
+  formatLargeCurrency,
+  statusColor,
+} from "../../utils/helpers";
 import { ButtonRow } from "../common/button-row";
 import { Modal } from "../common/modal";
 import { EditSaleModal } from "./edit-sale-modal";
@@ -69,12 +73,12 @@ export function SaleDetailModal({
     { label: t.quantity, value: String(sale.quantity), highlight: false },
     {
       label: t.unitPrice,
-      value: formatCurrency(sale.price, currency),
+      value: formatLargeCurrency(sale.price, currency),
       highlight: false,
     },
     {
       label: t.total,
-      value: formatCurrency(sale.total, currency),
+      value: formatLargeCurrency(sale.total, currency),
       highlight: true,
     },
     { label: t.status, value: getStatusText(sale.status), isStatus: true },

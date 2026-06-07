@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { useDB } from "../../hooks/use-database";
 import { useTranslation } from "../../hooks/use-translation";
-import { formatCurrency, initials } from "../../utils/helpers";
+import { formatLargeCurrency, initials } from "../../utils/helpers";
 import { ListItem } from "../common/list-item";
 
 interface ClientsScreenProps {
@@ -87,13 +87,13 @@ export function ClientsScreen({ onDetail }: ClientsScreenProps) {
         <View style={styles.statCard}>
           <Text style={styles.statLabel}>{t.totalSpent}</Text>
           <Text style={[styles.statValue, styles.statValueAccent]}>
-            {formatCurrency(stats.totalSpent, currency)}
+            {formatLargeCurrency(stats.totalSpent, currency)}
           </Text>
         </View>
         <View style={styles.statCard}>
           <Text style={styles.statLabel}>{t.averageSpent}</Text>
           <Text style={styles.statValue}>
-            {formatCurrency(stats.averageSpent, currency)}
+            {formatLargeCurrency(stats.averageSpent, currency)}
           </Text>
         </View>
       </View>
@@ -174,7 +174,7 @@ export function ClientsScreen({ onDetail }: ClientsScreenProps) {
                 onClick={() => onDetail(c.id)}
                 rightTop={
                   <Text style={styles.spentText}>
-                    {formatCurrency(c.totalPurchases, currency)}
+                    {formatLargeCurrency(c.totalPurchases, currency)}
                   </Text>
                 }
                 rightBottom={

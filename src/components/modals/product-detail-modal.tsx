@@ -1,10 +1,10 @@
+import { formatLargeCurrency } from "@/src/utils/helpers";
 import { Pencil } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useDB } from "../../hooks/use-database";
 import { useTranslation } from "../../hooks/use-translation";
 import { Product } from "../../types";
-import { formatCurrency } from "../../utils/helpers";
 import { ButtonRow } from "../common/button-row";
 import { Modal } from "../common/modal";
 import { StockBar } from "../common/stock-bar";
@@ -128,7 +128,7 @@ export function ProductDetailModal({
             <View style={styles.statCard}>
               <Text style={styles.statLabel}>{t.price}</Text>
               <Text style={styles.statValue}>
-                {formatCurrency(product.price, currency)}
+                {formatLargeCurrency(product.price, currency)}
               </Text>
             </View>
             <View style={styles.statCard}>
@@ -152,7 +152,7 @@ export function ProductDetailModal({
               <View style={styles.revenueItem}>
                 <Text style={styles.revenueLabel}>{t.totalRevenue}</Text>
                 <Text style={styles.revenueValue}>
-                  {formatCurrency(stats.revenue, currency)}
+                  {formatLargeCurrency(stats.revenue, currency)}
                 </Text>
               </View>
               <View style={styles.revenueItem}>

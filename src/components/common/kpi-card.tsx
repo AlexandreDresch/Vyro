@@ -1,13 +1,16 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { useDB } from "../../hooks/use-database";
+import { formatLargeCurrency } from "../../utils/helpers";
 
 interface KpiCardProps {
   label: string;
-  value: string;
+  value: number;
   sub?: string;
   accent?: boolean;
   trend?: "up" | "down" | "neutral";
   trendValue?: string;
+  isCurrency?: boolean;
 }
 
 export function KpiCard({
@@ -17,7 +20,19 @@ export function KpiCard({
   accent = false,
   trend,
   trendValue,
+  isCurrency = false,
 }: KpiCardProps) {
+  const { preferences } = useDB();
+
+  const formattedValue = () => {
+    if (isCurrency) {
+      const currency = preferences?.currency || "BRL";
+      return formatLargeCurrency(value, currency);
+    } else {
+      return value.toLocaleString();
+    }
+  };
+
   const getTrendColor = () => {
     if (trend === "up") return "#6ee7b7";
     if (trend === "down") return "#f87171";
@@ -33,7 +48,9 @@ export function KpiCard({
   return (
     <View style={styles.card}>
       <Text style={styles.label}>{label}</Text>
-      <Text style={[styles.value, accent && styles.valueAccent]}>{value}</Text>
+      <Text style={[styles.value, accent && styles.valueAccent]}>
+        {formattedValue()}
+      </Text>
       {sub && (
         <View style={styles.subContainer}>
           <Text style={styles.sub}>{sub}</Text>
@@ -82,6 +99,7 @@ const styles = StyleSheet.create({
   sub: {
     fontSize: 11,
     color: "#6ee7b7",
+    textAlign: "center",
   },
   trendContainer: {
     marginTop: 4,

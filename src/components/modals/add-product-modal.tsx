@@ -10,7 +10,7 @@ import {
 import { CATEGORIES, COLORS } from "../../constants";
 import { useDB } from "../../hooks/use-database";
 import { useTranslation } from "../../hooks/use-translation";
-import { formatCurrency, uid } from "../../utils/helpers";
+import { formatLargeCurrency, uid } from "../../utils/helpers";
 import { ButtonRow } from "../common/button-row";
 import { Field } from "../common/field";
 import { Modal } from "../common/modal";
@@ -154,8 +154,8 @@ export function AddProductModal({ onClose, onSave }: AddProductModalProps) {
               </Text>
               <Text style={styles.previewPrice}>
                 {isValidPrice
-                  ? formatCurrency(priceValue, currency)
-                  : formatCurrency(0, currency)}
+                  ? formatLargeCurrency(priceValue, currency)
+                  : formatLargeCurrency(0, currency)}
               </Text>
             </View>
           </View>
