@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "vyro",
+    "name": "Vyro",
     "slug": "vyro",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -9,23 +9,16 @@
     "userInterfaceStyle": "dark",
     "backgroundColor": "#0a0a0a",
     "primaryColor": "#e8b84b",
-    "splash": {
-      "image": "./assets/images/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#0a0a0a"
-    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.yourcompany.vyro",
       "infoPlist": {
-        "UISupportedInterfaceOrientations": [
-          "UIInterfaceOrientationPortrait"
-        ]
+        "UISupportedInterfaceOrientations": ["UIInterfaceOrientationPortrait"]
       }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#0a0a0a"
       },
       "package": "com.yourcompany.vyro",
@@ -38,13 +31,21 @@
     "web": {
       "bundler": "metro",
       "output": "single",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/icon.png"
     },
     "plugins": [
       [
         "expo-document-picker",
         {
           "iCloudContainerEnvironment": "Production"
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0a0a0a",
+          "image": "./assets/images/splash.png",
+          "imageWidth": 250
         }
       ],
       "expo-file-system",
