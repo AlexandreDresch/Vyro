@@ -13,7 +13,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.yourcompany.vyro",
       "infoPlist": {
-        "UISupportedInterfaceOrientations": ["UIInterfaceOrientationPortrait"]
+        "UISupportedInterfaceOrientations": [
+          "UIInterfaceOrientationPortrait"
+        ]
       }
     },
     "android": {
@@ -24,7 +26,8 @@
       "package": "com.yourcompany.vyro",
       "permissions": [
         "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE"
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.INTERNET"
       ],
       "predictiveBackGestureEnabled": false
     },
@@ -49,11 +52,12 @@
         }
       ],
       "expo-file-system",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-font"
     ],
     "extra": {
       "eas": {
-        "projectId": "your-project-id-here"
+        "projectId": "53bf9513-352c-4ee0-89df-19d5c8f7f543"
       }
     }
   }
